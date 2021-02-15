@@ -7,6 +7,7 @@ STACK_ABT_SIZE = 0x100;
 STACK_IRQ_SIZE = 0x100;
 STACK_FIQ_SIZE = 0x100;
 STACK_SVC_SIZE = 0x400;
+HEAP_SIZE = 0x00100;
 
 MEMORY
 {
@@ -63,6 +64,14 @@ SECTIONS
 		. = ALIGN(8);
 		PROVIDE(__bss_end = .);
 	} > sram
+	
+	.heap ALIGN(8) (NOLOAD) :
+    {
+        PROVIDE(__heap_start = .);
+        . = . + HEAP_SIZE;
+        . = ALIGN(8);
+        PROVIDE(__heap_end = .);
+    } > sram
 
 	.stack ALIGN(8) (NOLOAD) :
 	{
@@ -90,6 +99,3 @@ SECTIONS
 		PROVIDE(__stack_end = .);
 	} > sram
 }
-
-
-

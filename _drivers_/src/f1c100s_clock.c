@@ -172,8 +172,8 @@ void clk_hclk_config(uint8_t div) // HCLK = CPUCLK / div
     if ((div == 0) || (div > 4))
         return;
 
-    uint32_t reg = read32(F1C100S_CCU_BASE+CCU_AHB_APB_CFG) & ~(0x3 << 16);
-    write32(F1C100S_CCU_BASE+CCU_CPU_CFG, reg | ((div-1) << 16));
+    uint32_t val = read32(F1C100S_CCU_BASE+CCU_AHB_APB_CFG) & ~(0x3 << 16);
+    write32(F1C100S_CCU_BASE+CCU_AHB_APB_CFG, val | ((div-1) << 16));
 }
 
 void clk_ahb_config(clk_source_ahb_e src, uint8_t prediv, uint8_t div) // AHB = (src or src/prediv)/div
@@ -185,14 +185,14 @@ void clk_ahb_config(clk_source_ahb_e src, uint8_t prediv, uint8_t div) // AHB = 
     if (div == 4)
         div = 3;
 
-    uint32_t reg = read32(F1C100S_CCU_BASE+CCU_AHB_APB_CFG) & ~((0x3 << 12) | (0xF << 4));
-    write32(F1C100S_CCU_BASE+CCU_CPU_CFG, reg | (src << 12) | ((prediv-1) << 6) | ((div-1) << 4));
+    uint32_t val = read32(F1C100S_CCU_BASE+CCU_AHB_APB_CFG) & ~((0x3 << 12) | (0xF << 4));
+    write32(F1C100S_CCU_BASE+CCU_AHB_APB_CFG, val | (src << 12) | ((prediv-1) << 6) | ((div-1) << 4));
 }
 
 void clk_apb_config(clk_div_apb_e div) // APB = AHB / div
 {
-    uint32_t reg = read32(F1C100S_CCU_BASE+CCU_AHB_APB_CFG) & ~(0x3 << 8);
-    write32(F1C100S_CCU_BASE+CCU_CPU_CFG, reg | (div << 8));
+    uint32_t val = read32(F1C100S_CCU_BASE+CCU_AHB_APB_CFG) & ~(0x3 << 8);
+    write32(F1C100S_CCU_BASE+CCU_AHB_APB_CFG, val | (div << 8));
 }
 
 // DEBE / DEFE clock configuration
@@ -212,8 +212,8 @@ void clk_de_config(uint32_t reg, clk_source_de_e source, uint8_t div)
 // TCON clock configuration
 void clk_tcon_config(clk_source_vid_e source)
 {
-    uint32_t reg = read32(F1C100S_CCU_BASE+CCU_TCON_CLK) & ~(0x7 << 24);
-    write32(F1C100S_CCU_BASE+CCU_TCON_CLK, reg | (source << 24));
+    uint32_t val = read32(F1C100S_CCU_BASE+CCU_TCON_CLK) & ~(0x7 << 24);
+    write32(F1C100S_CCU_BASE+CCU_TCON_CLK, val | (source << 24));
 }
 
 /************** Resets ***************/
