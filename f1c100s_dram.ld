@@ -1,4 +1,4 @@
-OUTPUT_FORMAT("elf32-littlearm", "elf32-bigarm", "elf32-littlearm")
+OUTPUT_FORMAT("elf32-littlearm")
 OUTPUT_ARCH(arm)
 ENTRY(_start)
 
@@ -39,7 +39,7 @@ SECTIONS
 		*(.data*)
 		. = ALIGN(8);
   		PROVIDE(__data_end = .);
-  		PROVIDE(__image_end = __data_end);
+  		PROVIDE(__image_end = .);
 	} > ram
 
 	.ARM.exidx ALIGN(8) :

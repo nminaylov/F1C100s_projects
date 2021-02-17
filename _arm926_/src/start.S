@@ -40,6 +40,18 @@
 
 #endif
 
+#if defined (LOAD_HEADER)
+
+    /* Boot head information for BROM */
+    b _start
+    .long 0x555AAAFF
+    .long (__image_start)   /* start */
+    .long (__image_end)     /* end */
+    .long 0     /* reserved */
+    .long 0     /* reserved for CRC */
+
+#endif
+
 /*
  * Exception vector table
  */
@@ -277,7 +289,6 @@ _stack_fiq_end:
     .long __stack_fiq_end
 _stack_svc_end:
     .long __stack_svc_end
-
 /*
  * Default exception handlers
  */

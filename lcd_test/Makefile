@@ -22,6 +22,6 @@ INCLUDES += -I. -Iinc
 # Define optimisation level here
 OPT = -Og
 
-#DEFS += -DEGON_HEADER # add eGON.BT0 header
+DEFS += -DLOAD_HEADER # add header for simple_loader
 
 include ../f1c100s_common.mk
