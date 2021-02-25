@@ -19,6 +19,9 @@ extern "C" {
 #define read64(x) (*((volatile uint64_t *)(x)))
 #define write64(x,y) (*((volatile uint64_t *)(x)) = y)
 
+#define set32(x,y) write32(x,(read32(x)|y))
+#define clear32(x,y) write32(x,(read32(x)&~y))
+
 #ifdef __cplusplus
 }
 #endif

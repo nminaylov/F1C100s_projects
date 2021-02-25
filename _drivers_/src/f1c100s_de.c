@@ -1,27 +1,26 @@
 /********************************************//**
  * @file f1c100s_de.c
- * @brief F1C100s Display Engine driver (tcon, debe, defe, tve)
+ * @brief F1C100s Display Engine driver (tcon, debe, defe)
  * @author n.minaylov
  ***********************************************/
 
 #include "f1c100s_de.h"
 #include <string.h>
 #include "f1c100s_clock.h"
+#include "f1c100s_tve.h"
 #include "io.h"
 
 static void debe_update_linewidth(uint8_t layer);
-static void tcon_init(de_config_t *params, uint32_t tcon_clk);
+static void tcon0_init(de_lcd_config_t *params, uint32_t tcon_clk);
+static void tcon1_init(tve_mode_e mode);
 static void debe_init(void);
 static void tcon_deinit(void);
 static void tcon_clk_init(void);
 static void tcon_clk_enable(void);
-//static void tcon_clk_disable(void);
 static void defe_clk_init(void);
 static void defe_clk_enable(void);
-//static void defe_clk_disable(void);
 static void debe_clk_init(void);
 static void debe_clk_enable(void);
-//static void debe_clk_disable(void);
 
 typedef struct
 {
@@ -32,21 +31,17 @@ typedef struct
 
 typedef struct
 {
-    int32_t width;
-    int32_t height;
+    uint32_t width;
+    uint32_t height;
     de_layer_params_t layer[4];
+    de_mode_e mode;
 } de_params_t;
 
 static de_params_t de;
 
-struct f1c100s_tcon_reg_t *tcon = (struct f1c100s_tcon_reg_t*) F1C100S_TCON_BASE;
-struct f1c100s_debe_reg_t *debe = (struct f1c100s_debe_reg_t*) F1C100S_DEBE_BASE;
-struct f1c100s_defe_reg_t *defe = (struct f1c100s_defe_reg_t*) F1C100S_DEFE_BASE;
-
 /* TODO:
  *
  *    defe
- *    tve + tcon1
  *
  *    debe_set_layer_priority
  *     debe_set_yuv_layer
@@ -63,29 +58,28 @@ struct f1c100s_defe_reg_t *defe = (struct f1c100s_defe_reg_t*) F1C100S_DEFE_BASE
 /************** DEBE Layers ***************/
 void debe_set_bg_color(uint32_t color) // RGB888
 {
-    debe->backcolor = color;
+    write32(F1C100S_DEBE_BASE + DEBE_BACKCOLOR, color);
 }
 
 void debe_layer_enable(uint8_t layer)
 {
-    debe->mode |= (1 << (layer + 8));
+    set32(F1C100S_DEBE_BASE + DEBE_MODE, (1 << (layer + 8)));
 }
 
 void debe_layer_disable(uint8_t layer)
 {
-    debe->mode &= ~(1 << (layer + 8));
+    clear32(F1C100S_DEBE_BASE + DEBE_MODE, (1 << (layer + 8)));
 }
 
 void debe_layer_init(uint8_t layer)
 {
     if (layer > 3)
         return;
-
     de.layer[layer].width = de.width;
     de.layer[layer].height = de.height;
 
-    debe->layer_pos[layer] = 0;
-    debe->layer_size[layer] = ((de.height - 1) << 16) | (de.width - 1);
+    write32(F1C100S_DEBE_BASE + DEBE_LAY_POS + layer*4, 0);
+    write32(F1C100S_DEBE_BASE + DEBE_LAY_SIZE + layer*4, ((de.height - 1) << 16) | (de.width - 1));
 
     debe_update_linewidth(layer);
 }
@@ -94,7 +88,7 @@ void debe_layer_set_pos(uint8_t layer, int16_t x, int16_t y)
 {
     if (layer > 3)
         return;
-    debe->layer_pos[layer] = (y << 16) | (x & 0xFFFF);
+    write32(F1C100S_DEBE_BASE + DEBE_LAY_POS + layer*4, (y << 16) | (x & 0xFFFF));
 }
 
 void debe_layer_set_size(uint8_t layer, uint16_t w, uint16_t h)
@@ -104,7 +98,7 @@ void debe_layer_set_size(uint8_t layer, uint16_t w, uint16_t h)
     de.layer[layer].width = w;
     de.layer[layer].height = h;
 
-    debe->layer_size[layer] = ((h - 1) << 16) | (w - 1);
+    write32(F1C100S_DEBE_BASE + DEBE_LAY_SIZE + layer*4, ((h - 1) << 16) | (w - 1));
 
     debe_update_linewidth(layer);
 }
@@ -116,12 +110,12 @@ void debe_layer_set_mode(uint8_t layer, debe_color_mode_e mode)
     de.layer[layer].bits_per_pixel = (mode >> 8) & 0x00FF;
 
     if (mode & DEBE_PALETTE_EN)
-        debe->layer_attr0_ctrl[layer] |= (1 << 22);
+        set32(F1C100S_DEBE_BASE + DEBE_LAY_ATTR0 + layer*4, (1 << 22));
     else
-        debe->layer_attr0_ctrl[layer] &= ~(1 << 22);
+        clear32(F1C100S_DEBE_BASE + DEBE_LAY_ATTR0 + layer*4, (1 << 22));
 
-    debe->layer_attr1_ctrl[layer] &= ~(0x0F << 8);
-    debe->layer_attr1_ctrl[layer] |= (mode & 0x000F) << 8;
+    uint32_t val = read32(F1C100S_DEBE_BASE + DEBE_LAY_ATTR1 + layer*4) & ~(0x0F << 8);
+    write32(F1C100S_DEBE_BASE + DEBE_LAY_ATTR1 + layer*4, val | ((mode & 0x0F) << 8));
 
     debe_update_linewidth(layer);
 }
@@ -130,24 +124,23 @@ void debe_layer_set_addr(uint8_t layer, void *buf) // Set framebufer address
 {
     if (layer > 3)
         return;
-
-    debe->layer_addr[layer] = ((uint32_t) buf) << 3;
+    write32(F1C100S_DEBE_BASE + DEBE_LAY_ADDR + layer*4, ((uint32_t) buf) << 3);
 }
 
 void debe_layer_set_alpha(uint8_t layer, uint8_t alpha)
 {
     if (layer > 3)
         return;
+    uint32_t val = read32(F1C100S_DEBE_BASE + DEBE_LAY_ATTR0 + layer*4) & ~(0xFF << 24);
+    write32(F1C100S_DEBE_BASE + DEBE_LAY_ATTR0 + layer*4, val | (alpha << 24));
 
-    debe->layer_attr0_ctrl[layer] &= ~(0xFF << 24);
-    debe->layer_attr0_ctrl[layer] |= (alpha << 24);
     if (alpha != 0)
     {
-        debe->layer_attr0_ctrl[layer] |= (1 << 0);
+        set32(F1C100S_DEBE_BASE + DEBE_LAY_ATTR0 + layer*4, (1 << 0));
     }
     else
     {
-        debe->layer_attr0_ctrl[layer] &= ~(1 << 0);
+        clear32(F1C100S_DEBE_BASE + DEBE_LAY_ATTR0 + layer*4, (1 << 0));
     }
 }
 
@@ -155,20 +148,21 @@ static void debe_update_linewidth(uint8_t layer)
 {
     if (layer > 3)
         return;
-
-    debe->layer_stride[layer] = de.layer[layer].width * de.layer[layer].bits_per_pixel;
+    uint32_t val = de.layer[layer].width * de.layer[layer].bits_per_pixel;
+    write32(F1C100S_DEBE_BASE + DEBE_LAY_STRIDE + layer*4, val);
 }
 
 void debe_write_palette(uint32_t *data, uint16_t len)
 {
-    memcpy((void*) (F1C100S_DEBE_BASE + 0x1000), data, len * 4);
+    memcpy((void*) (F1C100S_DEBE_BASE + DEBE_PALETTE), data, len * 4);
 }
 
 /************** Initialization ***************/
-void de_init(de_config_t *params)
+void de_lcd_init(de_lcd_config_t *params)
 {
     de.height = params->height;
     de.width = params->width;
+    de.mode = DE_LCD;
 
     clk_pll_init(PLL_VIDEO, 99, 8); // 24*99/8 = 297MHz
     uint32_t tcon_clk = (24 * 99 / 8) * 1000000;
@@ -191,105 +185,193 @@ void de_init(de_config_t *params)
 
     tcon_deinit();
     debe_init();
-    tcon_init(params, tcon_clk);
+    tcon0_init(params, tcon_clk);
     debe_set_bg_color(0);
     de_enable();
     debe_load(DEBE_UPDATE_MANUAL);
 }
 
+void de_tv_init(tve_mode_e mode, uint16_t hor_lines)
+{
+    de.mode = DE_TV;
+    de.width = 720;
+    (mode == TVE_MODE_NTSC) ? (de.height = 480) : (de.height = 576);
+
+
+    clk_pll_init(PLL_VIDEO, 99, 8); // 24*99/8 = 297MHz
+    clk_pll_enable(PLL_VIDEO);
+
+    debe_clk_init();
+    defe_clk_init();
+    tcon_clk_init();
+
+    defe_clk_enable();
+    debe_clk_enable();
+    tcon_clk_enable();
+
+    clk_reset_clear(CCU_BUS_SOFT_RST1, 14);
+    clk_reset_clear(CCU_BUS_SOFT_RST1, 12);
+    clk_reset_clear(CCU_BUS_SOFT_RST1, 4);
+
+    for (uint32_t i = 0x0800; i < 0x1000; i += 4)
+        write32(F1C100S_DEBE_BASE + i, 0);
+
+    tcon_deinit();
+    debe_init();
+    tcon1_init(mode);
+
+    // CSC configuration
+    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 0*4, 0x024C0000);
+    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 1*4, 0x00AF0000);
+    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 2*4, 0x003B0000);
+    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 3*4, 0x00E00000);
+
+    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 4*4, 0x1EDE0000);
+    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 5*4, 0x1F990000);
+    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 6*4, 0x01880000);
+    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 7*4, 0x08000000);
+
+    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 8*4, 0x1E930000);
+    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 9*4, 0x01840000);
+    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 10*4, 0x1FE90000);
+    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 11*4, 0x08000000);
+
+    set32(F1C100S_DEBE_BASE + DEBE_MODE, (1 << 5)); // CSC enable
+
+    debe_set_bg_color(0);
+    de_enable();
+    debe_load(DEBE_UPDATE_MANUAL);
+
+    tve_init(mode);
+}
+
 void de_enable(void)
 {
-    tcon->tcon0_ctrl |= (1 << 31);
-    tcon->ctrl |= (1 << 31);
-    debe->mode |= (1 << 0);
+    if (de.mode == DE_LCD)
+    {
+        set32(F1C100S_TCON_BASE + TCON0_CTRL, (1 << 31));
+    }
+    else if (de.mode == DE_TV)
+    {
+        set32(F1C100S_TCON_BASE + TCON1_CTRL, (1 << 31));
+        tve_enable();
+    }
+    set32(F1C100S_TCON_BASE + TCON_CTRL, (1 << 31));
+    set32(F1C100S_DEBE_BASE + DEBE_MODE, (1 << 0));
 }
 
 void de_diable(void)
 {
-    //tcon->tcon0_ctrl &= ~(1 << 31);
-    debe->mode &= ~(1 << 0);
+    if (de.mode == DE_TV)
+    {
+        tve_disable();
+    }
+    clear32(F1C100S_TCON_BASE + TCON_CTRL, (1 << 31));
+    clear32(F1C100S_DEBE_BASE + DEBE_MODE, (1 << 0));
 }
 
 // Update DEBE registers
 void debe_load(debe_reg_update_e mode)
 {
-    debe->reg_ctrl = mode;
+    write32(F1C100S_DEBE_BASE + DEBE_REGBUF_CTRL, mode);
 }
 
-static void tcon_init(de_config_t *params, uint32_t tcon_clk)
+static void tcon0_init(de_lcd_config_t *params, uint32_t tcon_clk) // TCON0 -> LCD
 {
     int32_t bp, total;
     uint32_t val;
 
-    //tcon->ctrl = (1 << 31);
-    tcon->ctrl &= ~(0x1 << 0);
-
     val = (params->v_front_porch + params->v_back_porch + params->v_sync_len);
-    tcon->tcon0_ctrl = ((val & 0x1f) << 4);
+    write32(F1C100S_TCON_BASE + TCON0_CTRL, ((val & 0x1f) << 4));
     val = tcon_clk / params->pixel_clock_hz;
-    tcon->tcon0_dclk = (0xf << 28) | (val << 0);
-    tcon->tcon0_timing_active = ((de.width - 1) << 16) | ((de.height - 1) << 0);
+    write32(F1C100S_TCON_BASE + TCON0_DCLK, (0xf << 28) | (val << 0));
+    write32(F1C100S_TCON_BASE + TCON0_TIMING_ACT, ((de.width-1) << 16) | ((de.height-1) << 0));
 
     bp = params->h_sync_len + params->h_back_porch;
     total = de.width + params->h_front_porch + bp;
-    tcon->tcon0_timing_h = ((total - 1) << 16) | ((bp - 1) << 0);
+    write32(F1C100S_TCON_BASE + TCON0_TIMING_H, ((total-1) << 16) | ((bp-1) << 0));
     bp = params->v_sync_len + params->v_back_porch;
     total = de.height + params->v_front_porch + bp;
-    tcon->tcon0_timing_v = ((total * 2) << 16) | ((bp - 1) << 0);
-    tcon->tcon0_timing_sync = ((params->h_sync_len - 1) << 16) | ((params->v_sync_len - 1) << 0);
+    write32(F1C100S_TCON_BASE + TCON0_TIMING_V, ((total*2) << 16) | ((bp-1) << 0));
+    write32(F1C100S_TCON_BASE + TCON0_TIMING_SYNC, ((params->h_sync_len-1) << 16) | ((params->v_sync_len-1) << 0));
 
-    tcon->tcon0_hv_intf = 0;
-    tcon->tcon0_cpu_intf = 0;
+    write32(F1C100S_TCON_BASE + TCON0_HV_INTF, 0);
+    write32(F1C100S_TCON_BASE + TCON0_CPU_INTF, 0);
 
-    tcon->tcon0_frm_seed[0] = 0x11111111;
-    tcon->tcon0_frm_seed[1] = 0x11111111;
-    tcon->tcon0_frm_seed[2] = 0x11111111;
-    tcon->tcon0_frm_seed[3] = 0x11111111;
-    tcon->tcon0_frm_seed[4] = 0x11111111;
-    tcon->tcon0_frm_seed[5] = 0x11111111;
-    tcon->tcon0_frm_table[0] = 0x01010000;
-    tcon->tcon0_frm_table[1] = 0x15151111;
-    tcon->tcon0_frm_table[2] = 0x57575555;
-    tcon->tcon0_frm_table[3] = 0x7f7f7777;
-    tcon->tcon0_frm_ctrl = (params->bus_width << 4) | (1 << 31);
+    write32(F1C100S_TCON_BASE + TCON_FRM_SEED + 0*4, 0x11111111);
+    write32(F1C100S_TCON_BASE + TCON_FRM_SEED + 1*4, 0x11111111);
+    write32(F1C100S_TCON_BASE + TCON_FRM_SEED + 2*4, 0x11111111);
+    write32(F1C100S_TCON_BASE + TCON_FRM_SEED + 3*4, 0x11111111);
+    write32(F1C100S_TCON_BASE + TCON_FRM_SEED + 4*4, 0x11111111);
+    write32(F1C100S_TCON_BASE + TCON_FRM_SEED + 5*4, 0x11111111);
+
+    write32(F1C100S_TCON_BASE + TCON_FRM_TABLE + 0*4, 0x01010000);
+    write32(F1C100S_TCON_BASE + TCON_FRM_TABLE + 1*4, 0x15151111);
+    write32(F1C100S_TCON_BASE + TCON_FRM_TABLE + 2*4, 0x57575555);
+    write32(F1C100S_TCON_BASE + TCON_FRM_TABLE + 3*4, 0x7f7f7777);
+
+    write32(F1C100S_TCON_BASE + TCON_FRM_CTRL, (params->bus_width << 4) | (1 << 31));
 
     val = (1 << 28);
     if (params->h_sync_invert)
-        val |= (1 << 25); // io1
-    if (params->h_sync_invert)
-        val |= (1 << 24); // io0
-    tcon->tcon0_io_polarity = val;
-    tcon->tcon0_io_tristate = 0;
+        val |= (1 << 25); // io1 ?
+    if (params->v_sync_invert)
+        val |= (1 << 24); // io0 ?
+    write32(F1C100S_TCON_BASE + TCON0_IO_POLARITY, val);
+    write32(F1C100S_TCON_BASE + TCON0_IO_TRISTATE, 0);
+}
+
+static void tcon1_init(tve_mode_e mode) // TCON1 -> TVE
+{
+    if (mode == TVE_MODE_NTSC)
+    {
+        write32(F1C100S_TCON_BASE + TCON1_CTRL, 0x00100130);
+        write32(F1C100S_TCON_BASE + TCON1_TIMING_SRC, ((720-1) << 16) | (480/2-1));
+        write32(F1C100S_TCON_BASE + TCON1_TIMING_SCALE, ((720-1) << 16) | (480/2-1));
+        write32(F1C100S_TCON_BASE + TCON1_TIMING_OUT, ((720-1) << 16) | (480/2-1));
+        write32(F1C100S_TCON_BASE + TCON1_TIMING_H, ((858-1) << 16) | (117));
+        write32(F1C100S_TCON_BASE + TCON1_TIMING_V, (525 << 16) | (18));
+    }
+    else if (mode == TVE_MODE_PAL)
+    {
+        write32(F1C100S_TCON_BASE + TCON1_CTRL, 0x00100150);
+        write32(F1C100S_TCON_BASE + TCON1_TIMING_SRC, ((720-1) << 16) | (575/2-1));
+        write32(F1C100S_TCON_BASE + TCON1_TIMING_SCALE, ((720-1) << 16) | (575/2-1));
+        write32(F1C100S_TCON_BASE + TCON1_TIMING_OUT, ((720-1) << 16) | (575/2-1));
+        write32(F1C100S_TCON_BASE + TCON1_TIMING_H, ((864-1) << 16) | (138));
+        write32(F1C100S_TCON_BASE + TCON1_TIMING_V, (625 << 16) | (22));
+    }
+
+    write32(F1C100S_TCON_BASE + TCON1_TIMING_SYNC, 0x00010001);
+    write32(F1C100S_TCON_BASE + TCON1_IO_POLARITY, 0x00000000);
+    write32(F1C100S_TCON_BASE + TCON1_IO_TRISTATE, 0x0FFFFFFF);
 }
 
 static void debe_init(void)
 {
-    debe->disp_size = (((de.height) - 1) << 16) | (((de.width) - 1) << 0);
-
-    debe->mode = (1 << 1);
+    write32(F1C100S_DEBE_BASE + DEBE_MODE, (1 << 1));
 
     for (uint8_t i = 0; i < 4; i++)
     {
-        debe->layer_attr0_ctrl[i] = (i << 10) | ((i & 1) << 15);
-        debe->layer_attr1_ctrl[i] = 0;
+        write32(F1C100S_DEBE_BASE + DEBE_LAY_ATTR0 + i*4, (i << 10) | ((i & 1) << 15));
+        write32(F1C100S_DEBE_BASE + DEBE_LAY_ATTR1 + i*4, 0);
         de.layer[i].bits_per_pixel = 32;
         debe_layer_init(i);
         debe_layer_set_mode(i, DEBE_MODE_32BPP_RGB_888);
     }
 
-    debe->reg_ctrl = (3 << 0);
+    debe_load(DEBE_UPDATE_MANUAL);
 }
 
 static void tcon_deinit(void)
 {
-    //tcon->tcon0_ctrl = 0;
-    tcon->ctrl = 0;
-    tcon->int0 = 0;
+    write32(F1C100S_DEBE_BASE + TCON_CTRL, 0);
+    write32(F1C100S_DEBE_BASE + TCON_INT0, 0);
 
-    tcon->tcon0_dclk &= ~(0xf << 28);
+    write32(F1C100S_DEBE_BASE + TCON0_DCLK, (0xF << 28));
 
-    tcon->tcon0_io_tristate = 0xffffffff;
-    tcon->tcon1_io_tristate = 0xffffffff;
+    write32(F1C100S_DEBE_BASE + TCON0_IO_TRISTATE, 0xFFFFFFFF);
+    write32(F1C100S_DEBE_BASE + TCON1_IO_TRISTATE, 0xFFFFFFFF);
 }
 
 static void tcon_clk_init(void)
@@ -303,12 +385,6 @@ static void tcon_clk_enable(void)
     clk_enable(CCU_BUS_CLK_GATE1, 4);
 }
 
-//static void tcon_clk_disable(void)
-//{
-//    clk_disable(CCU_TCON_CLK, 31);
-//    clk_disable(CCU_BUS_CLK_GATE1, 4);
-//}
-
 static void defe_clk_init(void)
 {
     clk_de_config(CCU_DEFE_CLK, CLK_DE_SRC_PLL_VIDEO, 1);
@@ -319,13 +395,6 @@ static void defe_clk_enable(void)
     clk_enable(CCU_DEFE_CLK, 31);
     clk_enable(CCU_BUS_CLK_GATE1, 14);
 }
-
-//static void defe_clk_disable(void)
-//{
-//    clk_disable(CCU_DRAM_CLK_GATE, 24);
-//    clk_disable(CCU_DEFE_CLK, 31);
-//    clk_disable(CCU_BUS_CLK_GATE1, 14);
-//}
 
 static void debe_clk_init(void)
 {
@@ -338,10 +407,3 @@ static void debe_clk_enable(void)
     clk_enable(CCU_DEBE_CLK, 31);
     clk_enable(CCU_BUS_CLK_GATE1, 12);
 }
-
-//static void debe_clk_disable(void)
-//{
-//    clk_disable(CCU_DRAM_CLK_GATE, 26);
-//    clk_disable(CCU_DEBE_CLK, 31);
-//    clk_disable(CCU_BUS_CLK_GATE1, 12);
-//}

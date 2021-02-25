@@ -6,6 +6,7 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#include "f1c100s_tve.h"
 
 typedef enum
 {
@@ -16,6 +17,12 @@ typedef enum
     DE_LCD_B_5BITS = (1 << 0),
     DE_LCD_B_6BITS = (0 << 0),
 } de_lcd_bus_e;
+
+typedef enum
+{
+    DE_LCD,
+    DE_TV,
+} de_mode_e;
 
 typedef enum
 {
@@ -71,7 +78,7 @@ typedef struct
     int32_t v_sync_len;
     int32_t h_sync_invert;
     int32_t v_sync_invert;
-} de_config_t;
+} de_lcd_config_t;
 
 void debe_set_bg_color(uint32_t color);
 void debe_layer_enable(uint8_t layer);
@@ -85,7 +92,8 @@ void debe_layer_set_alpha(uint8_t layer, uint8_t alpha);
 void debe_write_palette(uint32_t *data, uint16_t len);
 void debe_load(debe_reg_update_e mode);
 
-void de_init(de_config_t *params);
+void de_lcd_init(de_lcd_config_t *params);
+void de_tv_init(tve_mode_e mode, uint16_t hor_lines);
 void de_enable(void);
 void de_diable(void);
 
@@ -95,71 +103,69 @@ void de_diable(void);
 #define F1C100S_DEBE_BASE (0x01E60000)
 #define F1C100S_DEFE_BASE (0x01E00000)
 
-struct f1c100s_tcon_reg_t
+typedef enum
 {
-    uint32_t ctrl;                /* 0x00 */
-    uint32_t int0;                /* 0x04 */
-    uint32_t int1;                /* 0x08 */
-    uint8_t res0[0x04];           /* 0x0c */
-    uint32_t tcon0_frm_ctrl;      /* 0x10 */
-    uint32_t tcon0_frm_seed[6];   /* 0x14 */
-    uint32_t tcon0_frm_table[4];  /* 0x2c */
-    uint8_t res1[4];              /* 0x3c */
-    uint32_t tcon0_ctrl;          /* 0x40 */
-    uint32_t tcon0_dclk;          /* 0x44 */
-    uint32_t tcon0_timing_active; /* 0x48 */
-    uint32_t tcon0_timing_h;      /* 0x4c */
-    uint32_t tcon0_timing_v;      /* 0x50 */
-    uint32_t tcon0_timing_sync;   /* 0x54 */
-    uint32_t tcon0_hv_intf;       /* 0x58 */
-    uint8_t res2[0x04];           /* 0x5c */
-    uint32_t tcon0_cpu_intf;      /* 0x60 */
-    uint32_t tcon0_cpu_wr_dat;    /* 0x64 */
-    uint32_t tcon0_cpu_rd_dat0;   /* 0x68 */
-    uint32_t tcon0_cpu_rd_dat1;   /* 0x6c */
-    uint32_t res3[6];
-    uint32_t tcon0_io_polarity;   /* 0x88 */
-    uint32_t tcon0_io_tristate;   /* 0x8c */
-    uint32_t tcon1_ctrl;          /* 0x90 */
-    uint32_t tcon1_timing_source; /* 0x94 */
-    uint32_t tcon1_timing_scale;  /* 0x98 */
-    uint32_t tcon1_timing_out;    /* 0x9c */
-    uint32_t tcon1_timing_h;      /* 0xa0 */
-    uint32_t tcon1_timing_v;      /* 0xa4 */
-    uint32_t tcon1_timing_sync;   /* 0xa8 */
-    uint8_t res4[0x44];           /* 0xac */
-    uint32_t tcon1_io_polarity;   /* 0xf0 */
-    uint32_t tcon1_io_tristate;   /* 0xf4 */
-    uint32_t res5[2];
-    uint32_t tcon_debug; /* 0xfC */
-};
+    TCON_CTRL           = 0x00,
+    TCON_INT0           = 0x04,
+    TCON_INT1           = 0x08,
+    TCON_FRM_CTRL       = 0x10,
+    TCON_FRM_SEED       = 0x14,
+    TCON_FRM_TABLE      = 0x2C,
 
-struct f1c100s_debe_reg_t
+    TCON0_CTRL          = 0x40,
+    TCON0_DCLK          = 0x44,
+    TCON0_TIMING_ACT    = 0x48,
+    TCON0_TIMING_H      = 0x4C,
+    TCON0_TIMING_V      = 0x50,
+    TCON0_TIMING_SYNC   = 0x54,
+    TCON0_HV_INTF       = 0x58,
+    TCON0_CPU_INTF      = 0x60,
+    TCON0_CPU_WR_DAT    = 0x64,
+    TCON0_CPU_RD_DAT0   = 0x68,
+    TCON0_CPU_RD_DAT1   = 0x6C,
+    TCON0_IO_POLARITY   = 0x88,
+    TCON0_IO_TRISTATE   = 0x8C,
+
+    TCON1_CTRL          = 0x90,
+    TCON1_TIMING_SRC    = 0x94,
+    TCON1_TIMING_SCALE  = 0x98,
+    TCON1_TIMING_OUT    = 0x9C,
+    TCON1_TIMING_H      = 0xA0,
+    TCON1_TIMING_V      = 0xA4,
+    TCON1_TIMING_SYNC   = 0xA8,
+    TCON1_IO_POLARITY   = 0xF0,
+    TCON1_IO_TRISTATE   = 0xF4,
+
+    TCON_DEBUG          = 0xFC,
+} tcon_reg_e;
+
+typedef enum
 {
-    uint8_t res0[0x800];            /* 0x000 */
-    uint32_t mode;                  /* 0x800 */
-    uint32_t backcolor;             /* 0x804 */
-    uint32_t disp_size;             /* 0x808 */
-    uint8_t res1[0x4];              /* 0x80c */
-    uint32_t layer_size[4];         /* 0x810 */
-    uint32_t layer_pos[4];          /* 0x820 */
-    uint8_t res2[0x10];             /* 0x830 */
-    uint32_t layer_stride[4];       /* 0x840 */
-    uint32_t layer_addr[4];         /* 0x850 */
-    uint32_t res_addr[4];           /* 0x860 */
-    uint32_t reg_ctrl;              /* 0x870 */
-    uint8_t res3[0xc];              /* 0x874 */
-    uint32_t color_key_max;         /* 0x880 */
-    uint32_t color_key_min;         /* 0x884 */
-    uint32_t color_key_config;      /* 0x888 */
-    uint8_t res4[0x4];              /* 0x88c */
-    uint32_t layer_attr0_ctrl[4];   /* 0x890 */
-    uint32_t layer_attr1_ctrl[4];   /* 0x8a0 */
-    uint8_t res5[0x110];            /* 0x8b0 */
-    uint32_t output_color_ctrl;     /* 0x9c0 */
-    uint8_t res6[0xc];              /* 0x9c4 */
-    uint32_t output_color_coef[12]; /* 0x9d0 */
-};
+    DEBE_MODE           = 0x0800,
+    DEBE_BACKCOLOR      = 0x0804,
+    DEBE_LAY_SIZE       = 0x0810,
+    DEBE_LAY_POS        = 0x0820,
+    DEBE_LAY_STRIDE     = 0x0840,
+    DEBE_LAY_ADDR       = 0x0850,
+    DEBE_REGBUF_CTRL    = 0x0870,
+    DEBE_CKEY_MAX       = 0x0880,
+    DEBE_CKEY_MIN       = 0x0884,
+    DEBE_CKEY_CFG       = 0x0888,
+    DEBE_LAY_ATTR0      = 0x0890,
+    DEBE_LAY_ATTR1      = 0x08A0,
+    DEBE_HWC_CTRL       = 0x08D8,
+    DEBE_HWC_FORMAT     = 0x08E0,
+    DEBE_WB_CTRL        = 0x08F0,
+    DEBE_WB_ADDR        = 0x08F4,
+    DEBE_WB_STRIDE      = 0x08F8,
+    DEBE_YUV_IN_CTRL    = 0x0920,
+    DEBE_YUV_ADDR       = 0x0930,
+    DEBE_YUV_STRIDE     = 0x0940,
+    DEBE_COLOR_COEF     = 0x0950,
+    DEBE_PALETTE        = 0x1000,
+    DEBE_HWC_PATTERN    = 0x1400,
+    DEBE_HWC_PALETTE    = 0x1600,
+} debe_reg_e;
 
 struct f1c100s_defe_reg_t
 {

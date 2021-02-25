@@ -10,11 +10,11 @@ static void display_gpio_init(void);
 
 void display_init(void)
 {
-    de_config_t config;
+    de_lcd_config_t config;
 
     config.width = 800;
     config.height = 480;
-    config.bus_width = DE_LCD_R_6BITS | DE_LCD_G_6BITS | DE_LCD_G_6BITS;
+    config.bus_width = DE_LCD_R_6BITS | DE_LCD_G_6BITS | DE_LCD_B_6BITS;
 
     config.pixel_clock_hz = 33000000;
     config.h_front_porch = 40;
@@ -27,7 +27,7 @@ void display_init(void)
     config.v_sync_invert = 1;
 
     display_gpio_init();
-    de_init(&config);
+    de_lcd_init(&config);
     
     gpio_pin_init(GPIOE, 6, GPIO_MODE_AF3, GPIO_PULL_NONE, GPIO_DRV_3);
     pwm_init(PWM1, PWM_MODE_CONTINUOUS, 1, PWM_PSC_240); // 24M / 240 = 100kHz

@@ -216,6 +216,14 @@ void clk_tcon_config(clk_source_vid_e source)
     write32(F1C100S_CCU_BASE+CCU_TCON_CLK, val | (source << 24));
 }
 
+// Video encoder clock configuration
+void clk_ve_config(uint8_t div) // todo: source select
+{
+    if ((div == 0) || (div > 16))
+        return;
+    write32(F1C100S_CCU_BASE+CCU_TVE_CLK, (0x80008100) | (div-1));
+}
+
 /************** Resets ***************/
 
 inline void clk_reset_set(uint32_t reg, uint8_t bit)

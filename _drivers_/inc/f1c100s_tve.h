@@ -11,6 +11,12 @@ extern "C" {
 
 typedef enum
 {
+    TVE_MODE_NTSC,
+    TVE_MODE_PAL,
+} tve_mode_e;
+
+typedef enum
+{
     TVE_ENABLE          = 0x000,
     TVE_CFG1            = 0x004,
     TVE_DAC1            = 0x008,
@@ -47,14 +53,11 @@ typedef enum
     TVE_SLAVE           = 0x134,
     TVE_CFG3            = 0x138,
     TVE_CFG4            = 0x13C,
-    TVE_REG_300         = 0x300,
-    TVE_REG_304         = 0x304,
-    TVE_REG_308         = 0x308,
-    TVE_REG_30C         = 0x30C,
-    TVE_REG_3A0         = 0x3A0,
 } tve_reg_e;
 
-void tve_init(void);
+void tve_init(tve_mode_e mode);
+void tve_enable(void);
+void tve_disable(void);
 
 #ifdef __cplusplus
 }
