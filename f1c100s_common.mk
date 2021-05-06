@@ -17,6 +17,7 @@ SRCS += \
 	../_drivers_/src/f1c100s_timer.c \
 	../_drivers_/src/f1c100s_de.c \
 	../_drivers_/src/f1c100s_tve.c \
+	../_drivers_/src/f1c100s_tvd.c \
 	../_drivers_/src/f1c100s_clock.c \
 	../_drivers_/src/f1c100s_gpio.c \
 	../_drivers_/src/f1c100s_intc.c \

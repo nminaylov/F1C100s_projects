@@ -12,7 +12,7 @@
 
 void tve_init(tve_mode_e mode)
 {
-    clk_ve_config(11); // 297/11 = 27
+    clk_tve_config(11); // 297/11 = 27
     clk_enable(CCU_BUS_CLK_GATE1, 10);
     clk_reset_clear(CCU_BUS_SOFT_RST1, 10);
 

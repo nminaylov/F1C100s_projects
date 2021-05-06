@@ -12,6 +12,7 @@
     - f1c100s_uart - 16550-compatible UART
     - f1c100s_de - Display Engine (TCON, DEBE, DEFE)
     - f1c100s_tve - Undocumented TV(CVBS) encoder
+    - f1c100s_tvd - Undocumented TV(CVBS) decoder
 
 - \_lib_ - Miscellaneous non hardware-related libraries
 - \_tools_/mksunxi - A tool to add checksum to eGON.BT0 header. Taken from xboot project
@@ -25,6 +26,7 @@ All projects are targeted for Lichee Nano devboard with 800x480 LCD.
 - lcd_test - Example of display driver usage with simple graphics library
 - LVGL_demo - Demonstration project of LVGL library
 - tv_out_test - Test project for TVE driver
+- tv_in_test - Test project for TVD driver
 
 More projects will be added later.
 

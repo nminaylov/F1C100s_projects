@@ -217,11 +217,19 @@ void clk_tcon_config(clk_source_vid_e source)
 }
 
 // Video encoder clock configuration
-void clk_ve_config(uint8_t div) // todo: source select
+void clk_tve_config(uint8_t div) // todo: source select
 {
     if ((div == 0) || (div > 16))
         return;
     write32(F1C100S_CCU_BASE+CCU_TVE_CLK, (0x80008100) | (div-1));
+}
+
+// Video decoder clock configuration
+void clk_tvd_config(uint8_t div) // todo: source select
+{
+    if ((div == 0) || (div > 16))
+        return;
+    write32(F1C100S_CCU_BASE+CCU_TVD_CLK, (0x80000000) | (div-1));
 }
 
 /************** Resets ***************/

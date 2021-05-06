@@ -123,7 +123,8 @@ void clk_ahb_config(clk_source_ahb_e src, uint8_t prediv, uint8_t div);
 void clk_apb_config(clk_div_apb_e div);
 void clk_de_config(uint32_t reg, clk_source_de_e source, uint8_t div);
 void clk_tcon_config(clk_source_vid_e source);
-void clk_ve_config(uint8_t div);
+void clk_tve_config(uint8_t div);
+void clk_tvd_config(uint8_t div);
 
 void clk_reset_set(uint32_t reg, uint8_t bit);
 void clk_reset_clear(uint32_t reg, uint8_t bit);

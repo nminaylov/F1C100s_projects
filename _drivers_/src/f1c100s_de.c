@@ -44,8 +44,6 @@ static de_params_t de;
  *    defe
  *
  *    debe_set_layer_priority
- *     debe_set_yuv_layer
- *     debe_set_video_layer
  *
  *     debe_cursor_enable
  *    debe_cursor_disable
@@ -107,17 +105,31 @@ void debe_layer_set_mode(uint8_t layer, debe_color_mode_e mode)
 {
     if (layer > 3)
         return;
-    de.layer[layer].bits_per_pixel = (mode >> 8) & 0x00FF;
 
-    if (mode & DEBE_PALETTE_EN)
-        set32(F1C100S_DEBE_BASE + DEBE_LAY_ATTR0 + layer*4, (1 << 22));
+    if (mode == DEBE_MODE_DEFE_VIDEO)
+    {
+        uint32_t val = read32(F1C100S_DEBE_BASE + DEBE_LAY_ATTR0 + layer*4) & ~(3 << 1);
+        write32(F1C100S_DEBE_BASE + DEBE_LAY_ATTR0 + layer*4, val | (1 << 1));
+    }
+    else if (mode == DEBE_MODE_YUV)
+    {
+        uint32_t val = read32(F1C100S_DEBE_BASE + DEBE_LAY_ATTR0 + layer*4) & ~(3 << 1);
+        write32(F1C100S_DEBE_BASE + DEBE_LAY_ATTR0 + layer*4, val | (1 << 2));
+    }
     else
-        clear32(F1C100S_DEBE_BASE + DEBE_LAY_ATTR0 + layer*4, (1 << 22));
+    {
+        de.layer[layer].bits_per_pixel = (mode >> 8) & 0x00FF;
 
-    uint32_t val = read32(F1C100S_DEBE_BASE + DEBE_LAY_ATTR1 + layer*4) & ~(0x0F << 8);
-    write32(F1C100S_DEBE_BASE + DEBE_LAY_ATTR1 + layer*4, val | ((mode & 0x0F) << 8));
+        if (mode & DEBE_PALETTE_EN)
+            set32(F1C100S_DEBE_BASE + DEBE_LAY_ATTR0 + layer*4, (1 << 22));
+        else
+            clear32(F1C100S_DEBE_BASE + DEBE_LAY_ATTR0 + layer*4, (1 << 22));
 
-    debe_update_linewidth(layer);
+        uint32_t val = read32(F1C100S_DEBE_BASE + DEBE_LAY_ATTR1 + layer*4) & ~(0x0F << 8);
+        write32(F1C100S_DEBE_BASE + DEBE_LAY_ATTR1 + layer*4, val | ((mode & 0x0F) << 8));
+
+        debe_update_linewidth(layer);
+    }
 }
 
 void debe_layer_set_addr(uint8_t layer, void *buf) // Set framebufer address
@@ -191,6 +203,34 @@ void de_lcd_init(de_lcd_config_t *params)
     debe_load(DEBE_UPDATE_MANUAL);
 }
 
+static const uint32_t csc_tab[192] =
+{
+    //Y/G   Y/G     Y/G     Y/G     U/R     U/R     U/R     U/R     V/B     V/B     V/B     V/B
+    //bt601
+    0x04a8, 0x1e70, 0x1cbf, 0x0878, 0x04a8, 0x0000, 0x0662, 0x3211, 0x04a8, 0x0812, 0x0000, 0x2eb1, //yuv2rgb
+    0x0400, 0x0000, 0x0000, 0x0000, 0x0000, 0x0400, 0x0000, 0x0000, 0x0000, 0x0000, 0x0400, 0x0000, //yuv2yuv
+    0x0400, 0x0000, 0x0000, 0x0000, 0x0000, 0x0400, 0x0000, 0x0000, 0x0000, 0x0000, 0x0400, 0x0000, //rgb2rgb
+    0x0204, 0x0107, 0x0064, 0x0100, 0x1ed6, 0x1f68, 0x01c2, 0x0800, 0x1e87, 0x01c2, 0x1fb7, 0x0800, //rgb2yuv
+
+    //bt709
+    0x04a8, 0x1f26, 0x1ddd, 0x04d0, 0x04a8, 0x0000, 0x072c, 0x307e, 0x04a8, 0x0876, 0x0000, 0x2dea, //yuv2rgb
+    0x0400, 0x0000, 0x0000, 0x0000, 0x0000, 0x0400, 0x0000, 0x0000, 0x0000, 0x0000, 0x0400, 0x0000, //yuv2yuv
+    0x0400, 0x0000, 0x0000, 0x0000, 0x0000, 0x0400, 0x0000, 0x0000, 0x0000, 0x0000, 0x0400, 0x0000, //rgb2rgb
+    0x0275, 0x00bb, 0x003f, 0x0100, 0x1ea6, 0x1f99, 0x01c2, 0x0800, 0x1e67, 0x01c2, 0x1fd7, 0x0800, //rgb2yuv
+
+    //DISP_ YCC
+    0x0400, 0x1e9e, 0x1d24, 0x087b, 0x0400, 0x0000, 0x059c, 0x34c8, 0x0400, 0x0716, 0x0000, 0x31d5, //yuv2rgb
+    0x0400, 0x0000, 0x0000, 0x0000, 0x0000, 0x0400, 0x0000, 0x0000, 0x0000, 0x0000, 0x0400, 0x0000, //yuv2yuv
+    0x0400, 0x0000, 0x0000, 0x0000, 0x0000, 0x0400, 0x0000, 0x0000, 0x0000, 0x0000, 0x0400, 0x0000, //rgb2rgb
+    0x0259, 0x0132, 0x0075, 0x0000, 0x1ead, 0x1f53, 0x0200, 0x0800, 0x1e54, 0x0200, 0x1fac, 0x0800, //rgb2yuv
+
+    //xvYCC
+    0x04a8, 0x1f26, 0x1ddd, 0x04d0, 0x04a8, 0x0000, 0x072c, 0x307e, 0x04a8, 0x0876, 0x0000, 0x2dea, //yuv2rgb
+    0x0400, 0x0000, 0x0000, 0x0000, 0x0000, 0x0400, 0x0000, 0x0000, 0x0000, 0x0000, 0x0400, 0x0000, //yuv2yuv
+    0x0400, 0x0000, 0x0000, 0x0000, 0x0000, 0x0400, 0x0000, 0x0000, 0x0000, 0x0000, 0x0400, 0x0000, //rgb2rgb
+    0x0275, 0x00bb, 0x003f, 0x0100, 0x1ea6, 0x1f99, 0x01c2, 0x0800, 0x1e67, 0x01c2, 0x1fd7, 0x0800, //rgb2yuv
+};
+
 void de_tv_init(tve_mode_e mode, uint16_t hor_lines)
 {
     de.mode = DE_TV;
@@ -221,20 +261,28 @@ void de_tv_init(tve_mode_e mode, uint16_t hor_lines)
     tcon1_init(mode);
 
     // CSC configuration
-    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 0*4, 0x024C0000);
-    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 1*4, 0x00AF0000);
-    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 2*4, 0x003B0000);
-    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 3*4, 0x00E00000);
 
-    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 4*4, 0x1EDE0000);
-    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 5*4, 0x1F990000);
-    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 6*4, 0x01880000);
-    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 7*4, 0x08000000);
+    for(uint8_t i = 0; i < 4; i++)
+    {
+        write32(F1C100S_DEBE_BASE+DEBE_COLOR_COEF+i*4+0*4, csc_tab[12*3+i] << 16);
+        write32(F1C100S_DEBE_BASE+DEBE_COLOR_COEF+i*4+4*4, csc_tab[12*3+i+4] << 16);
+        write32(F1C100S_DEBE_BASE+DEBE_COLOR_COEF+i*4+8*4, csc_tab[12*3+i+8] << 16);
+    }
 
-    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 8*4, 0x1E930000);
-    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 9*4, 0x01840000);
-    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 10*4, 0x1FE90000);
-    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 11*4, 0x08000000);
+//    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 0*4, 0x024C0000);
+//    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 1*4, 0x00AF0000);
+//    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 2*4, 0x003B0000);
+//    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 3*4, 0x00E00000);
+//
+//    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 4*4, 0x1EDE0000);
+//    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 5*4, 0x1F990000);
+//    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 6*4, 0x01880000);
+//    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 7*4, 0x08000000);
+//
+//    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 8*4, 0x1E930000);
+//    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 9*4, 0x01840000);
+//    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 10*4, 0x1FE90000);
+//    write32(F1C100S_DEBE_BASE + DEBE_COLOR_COEF + 11*4, 0x08000000);
 
     set32(F1C100S_DEBE_BASE + DEBE_MODE, (1 << 5)); // CSC enable
 
@@ -274,6 +322,54 @@ void de_diable(void)
 void debe_load(debe_reg_update_e mode)
 {
     write32(F1C100S_DEBE_BASE + DEBE_REGBUF_CTRL, mode);
+}
+
+// Initialize DEFE in semi-planar YUV 4:2:2 input mode
+void defe_init_spl_422(uint16_t in_w, uint16_t in_h, uint8_t * buf_y, uint8_t * buf_uv)
+{
+    set32(F1C100S_DEFE_BASE+DEFE_EN, 0x01); // Enable DEFE
+    set32(F1C100S_DEFE_BASE+DEFE_EN, (1 << 31)); // Enable CPU access
+
+    write32(F1C100S_DEFE_BASE+DEFE_BYPASS, (0 << 0) | (0 << 1)); // CSC/scaler bypass disabled
+
+    write32(F1C100S_DEFE_BASE+DEFE_ADDR0, (uint32_t)buf_y);
+    write32(F1C100S_DEFE_BASE+DEFE_ADDR1, (uint32_t)buf_uv);
+    write32(F1C100S_DEFE_BASE+DEFE_STRIDE0, in_w);
+    write32(F1C100S_DEFE_BASE+DEFE_STRIDE1, in_w);
+
+    write32(F1C100S_DEFE_BASE+DEFE_IN_SIZE, (in_w-1) | ((in_h-1) << 16)); // Out size = In size
+    write32(F1C100S_DEFE_BASE+DEFE_OUT_SIZE, (in_w-1) | ((in_h-1) << 16));
+    write32(F1C100S_DEFE_BASE+DEFE_H_FACT, (1 << 16)); // H scale: 1
+    if (de.mode == DE_LCD)
+        write32(F1C100S_DEFE_BASE+DEFE_V_FACT, (1 << 16)); // V scale: 1
+    else if (de.mode == DE_TV)
+        write32(F1C100S_DEFE_BASE+DEFE_V_FACT, (2 << 16)); // V scale: 1/2 (??)
+
+    write32(F1C100S_DEFE_BASE+DEFE_IN_FMT, (2 << 8) | (1 << 4)); // UV combined | 422
+    set32(F1C100S_DEFE_BASE+DEFE_OUT_FMT, (1 << 4)); //??
+    //write32(F1C100S_DEFE_BASE+DEFE_FIELD_CTRL, (1 << 12)); //?
+
+    for(uint8_t i = 0; i < 4; i++) // Color conversion table
+    {
+        write32(F1C100S_DEFE_BASE+DEFE_CSC_COEF+i*4+0*4, csc_tab[i]);
+        write32(F1C100S_DEFE_BASE+DEFE_CSC_COEF+i*4+4*4, csc_tab[i+4]);
+        write32(F1C100S_DEFE_BASE+DEFE_CSC_COEF+i*4+8*4, csc_tab[i+8]);
+    }
+
+    set32(F1C100S_DEFE_BASE+DEFE_FRM_CTRL, (1 << 23)); // Enable CPU access to filter RAM (if enabled, filter is bypassed?)
+
+//    for (uint16_t i = 0; i < 32; i++) // TODO
+//    {
+//        write32(F1C100S_DEFE_BASE+DEFE_CH0_H_COEF+i*4, fir_tab[32*1+i]);
+//        write32(F1C100S_DEFE_BASE+DEFE_CH0_V_COEF+i*4, fir_tab[32*1+i]);
+//        write32(F1C100S_DEFE_BASE+DEFE_CH1_H_COEF+i*4, fir_tab[32*1+i]);
+//        write32(F1C100S_DEFE_BASE+DEFE_CH1_V_COEF+i*4, fir_tab[32*1+i]);
+//    }
+//    clear32(F1C100S_DEFE_BASE+DEFE_FRM_CTRL, (1 << 23)); // Disable CPU access to filter RAM (enable filter?)
+
+    clear32(F1C100S_DEFE_BASE+DEFE_EN, (1 << 31)); // Disable CPU access (?)
+    set32(F1C100S_DEFE_BASE+DEFE_FRM_CTRL, (1 << 0)); // Registers ready
+    set32(F1C100S_DEFE_BASE+DEFE_FRM_CTRL, (1 << 16)); // Start frame processing
 }
 
 static void tcon0_init(de_lcd_config_t *params, uint32_t tcon_clk) // TCON0 -> LCD
