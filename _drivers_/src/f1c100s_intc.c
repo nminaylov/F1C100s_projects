@@ -14,17 +14,17 @@ static intc_irq_handler irq_handlers[41];
 void intc_enable_irq(intc_irq_vector_e irq)
 {
     if (irq < 32)
-        write32(F1C100S_INTC_BASE+INTC_ENABLE0, (read32(F1C100S_INTC_BASE+INTC_ENABLE0) | (1 << irq)));
+        set32(F1C100S_INTC_BASE+INTC_ENABLE0, (1 << irq));
     else
-        write32(F1C100S_INTC_BASE+INTC_ENABLE1, (read32(F1C100S_INTC_BASE+INTC_ENABLE1) | (1 << irq)));
+        set32(F1C100S_INTC_BASE+INTC_ENABLE1, (1 << (irq-32)));
 }
 
 void intc_disable_irq(intc_irq_vector_e irq)
 {
     if (irq < 32)
-        write32(F1C100S_INTC_BASE+INTC_ENABLE0, (read32(F1C100S_INTC_BASE+INTC_ENABLE0) & ~(1 << irq)));
+        clear32(F1C100S_INTC_BASE+INTC_ENABLE0, (1 << irq));
     else
-        write32(F1C100S_INTC_BASE+INTC_ENABLE1, (read32(F1C100S_INTC_BASE+INTC_ENABLE1) & ~(1 << irq)));
+        clear32(F1C100S_INTC_BASE+INTC_ENABLE1, (1 << (irq-32)));
 }
 
 void intc_set_priority(intc_irq_vector_e irq, uint8_t prio)

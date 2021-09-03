@@ -144,6 +144,7 @@ void eint_debounce_config(uint32_t int_port, eint_debounce_src_e deb_src, eint_d
 
 uint32_t eint_get_status(uint32_t int_port);
 uint8_t eint_pin_get_status(uint32_t int_port, uint8_t pin_n);
+void eint_pin_clear_status(uint32_t int_port, uint8_t pin_n);
 
 #ifdef __cplusplus
 }

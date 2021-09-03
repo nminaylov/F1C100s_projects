@@ -119,5 +119,7 @@ inline uint8_t eint_pin_get_status(uint32_t int_port, uint8_t pin_n)
     return (read32(int_port+GPIO_INT_STA) >> pin_n) & 0x1;
 }
 
-
-//TODO EINT
+inline void eint_pin_clear_status(uint32_t int_port, uint8_t pin_n)
+{
+    set32(int_port+GPIO_INT_STA, (0x1 << pin_n));
+}
