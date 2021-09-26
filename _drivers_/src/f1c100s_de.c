@@ -11,7 +11,7 @@
 #include "io.h"
 
 static void debe_update_linewidth(uint8_t layer);
-static void tcon0_init(de_lcd_config_t *params, uint32_t tcon_clk);
+static void tcon0_init(de_lcd_config_t *params);
 static void tcon1_init(tve_mode_e mode);
 static void debe_init(void);
 static void tcon_deinit(void);
@@ -176,10 +176,6 @@ void de_lcd_init(de_lcd_config_t *params)
     de.width = params->width;
     de.mode = DE_LCD;
 
-    clk_pll_init(PLL_VIDEO, 99, 8); // 24*99/8 = 297MHz
-    uint32_t tcon_clk = (24 * 99 / 8) * 1000000;
-    clk_pll_enable(PLL_VIDEO);
-
     debe_clk_init();
     defe_clk_init();
     tcon_clk_init();
@@ -197,7 +193,7 @@ void de_lcd_init(de_lcd_config_t *params)
 
     tcon_deinit();
     debe_init();
-    tcon0_init(params, tcon_clk);
+    tcon0_init(params);
     debe_set_bg_color(0);
     de_enable();
     debe_load(DEBE_UPDATE_MANUAL);
@@ -236,10 +232,6 @@ void de_tv_init(tve_mode_e mode, uint16_t hor_lines)
     de.mode = DE_TV;
     de.width = 720;
     (mode == TVE_MODE_NTSC) ? (de.height = 480) : (de.height = 576);
-
-
-    clk_pll_init(PLL_VIDEO, 99, 8); // 24*99/8 = 297MHz
-    clk_pll_enable(PLL_VIDEO);
 
     debe_clk_init();
     defe_clk_init();
@@ -372,10 +364,12 @@ void defe_init_spl_422(uint16_t in_w, uint16_t in_h, uint8_t * buf_y, uint8_t * 
     set32(F1C100S_DEFE_BASE+DEFE_FRM_CTRL, (1 << 16)); // Start frame processing
 }
 
-static void tcon0_init(de_lcd_config_t *params, uint32_t tcon_clk) // TCON0 -> LCD
+static void tcon0_init(de_lcd_config_t *params) // TCON0 -> LCD
 {
     int32_t bp, total;
     uint32_t val;
+
+    uint32_t tcon_clk = clk_pll_get_freq(PLL_VIDEO);
 
     val = (params->v_front_porch + params->v_back_porch + params->v_sync_len);
     write32(F1C100S_TCON_BASE + TCON0_CTRL, ((val & 0x1f) << 4));

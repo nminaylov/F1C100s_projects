@@ -41,6 +41,10 @@ static void sys_clk_init(void)
     clk_ahb_config(CLK_AHB_SRC_PLL_PERIPH_PREDIV, 3, 1); // AHB = PLL_PERIPH/3/1 = 200M
     clk_apb_config(CLK_APB_DIV_2); // APB = AHB/2 = 100M
     sdelay(10);
+	
+    // Configure video clocks
+    clk_pll_init(PLL_VIDEO, 99, 8); // 24*99/8 = 297MHz
+    clk_pll_enable(PLL_VIDEO);
 
     // Configure CPU PLL
     clk_pll_init(PLL_CPU, 30, 1); // PLL_CPU = 24M*30/1 = 720M

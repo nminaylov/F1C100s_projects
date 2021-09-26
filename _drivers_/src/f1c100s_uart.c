@@ -5,6 +5,7 @@
  ***********************************************/
 
 #include "f1c100s_uart.h"
+#include "f1c100s_clock.h"
 #include "io.h"
 
 // Initialise UART with default settings (no parity, 8bits, 1 stop bit, no flow control)
@@ -23,8 +24,7 @@ void uart_init(uint32_t uart, uint32_t baud)
 
 void uart_set_baudrate(uint32_t uart, uint32_t baud)
 {
-    // TODO: get APB clock value from CCU driver
-    uint32_t apb_clock = 100000000UL;
+    uint32_t apb_clock = clk_apb_get_freq();
     uint16_t val = (uint16_t)(apb_clock / baud / 16UL);
     write32(uart+UART_LCR, (read32(uart+UART_LCR)|(1 << 7))); // Divisor Latch Access bit set
     write32(uart+UART_DLL, val & 0xFF); // Write divisor value

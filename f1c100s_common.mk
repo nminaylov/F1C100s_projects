@@ -22,6 +22,7 @@ SRCS += \
 	../_drivers_/src/f1c100s_gpio.c \
 	../_drivers_/src/f1c100s_intc.c \
 	../_drivers_/src/f1c100s_uart.c \
+	../_drivers_/src/f1c100s_sdc.c \
 	../_lib_/src/printf.c \
 	../_lib_/src/syscalls.c
 	

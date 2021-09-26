@@ -101,6 +101,12 @@ typedef enum
 
 typedef enum
 {
+    CLK_SDC_SRC_OSC24M = 0,
+    CLK_SDC_SRC_PLL_PERIPH = 1,
+} clk_source_sdc_e;
+
+typedef enum
+{
     CLK_VID_SRC_PLL_VIDEO_1X = 0,
     CLK_VID_SRC_OSC24M = 1, // TVD only
     CLK_VID_SRC_PLL_VIDEO_2X = 2,
@@ -113,6 +119,7 @@ void clk_pll_enable(pll_ch_e pll);
 void clk_pll_disable(pll_ch_e pll);
 uint8_t clk_pll_is_locked(pll_ch_e pll);
 void clk_pll_init(pll_ch_e pll, uint8_t mul, uint8_t div);
+uint32_t clk_pll_get_freq(pll_ch_e pll);
 
 void clk_enable(uint32_t reg, uint8_t bit);
 void clk_disable(uint32_t reg, uint8_t bit);
@@ -125,6 +132,12 @@ void clk_de_config(uint32_t reg, clk_source_de_e source, uint8_t div);
 void clk_tcon_config(clk_source_vid_e source);
 void clk_tve_config(uint8_t div);
 void clk_tvd_config(uint8_t div);
+uint32_t clk_sdc_config(uint32_t reg, uint32_t freq);
+
+uint32_t clk_cpu_get_freq(void);
+uint32_t clk_hclk_get_freq(void);
+uint32_t clk_ahb_get_freq(void);
+uint32_t clk_apb_get_freq(void);
 
 void clk_reset_set(uint32_t reg, uint8_t bit);
 void clk_reset_clear(uint32_t reg, uint8_t bit);

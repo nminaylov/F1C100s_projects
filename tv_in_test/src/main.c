@@ -35,6 +35,7 @@ int main(void)
     tvd_init(TVD_MODE_NTSC, fb_y, fb_c, 0);
     tvd_set_out_fmt(TVD_FMT_422_PL);
     tvd_get_out_size(&tv_w, &tv_h);
+    tvd_set_bluescreen_mode(TVD_BLUE_OFF);
 
     defe_init_spl_422(tv_w, tv_h, fb_y, fb_c);
 

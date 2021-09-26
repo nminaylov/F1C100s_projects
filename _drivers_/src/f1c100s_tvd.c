@@ -40,7 +40,11 @@ void tvd_init(tvd_mode_e mode, void * buf_y, void * buf_c, uint8_t ch)
 {
     clk_enable(CCU_BUS_CLK_GATE1, 9); // TVD bus clock
     clk_enable(CCU_DRAM_CLK_GATE, 3); // DRAM access clock
-    clk_tvd_config(11); // 297/11 = 27
+
+    // Determine tvd clock division value. PLL_VIDEO should be configured and enabled!
+    uint32_t tvd_clk_div = clk_pll_get_freq(PLL_VIDEO) / 27000000LU;
+
+    clk_tvd_config(tvd_clk_div);
     clk_reset_clear(CCU_BUS_SOFT_RST1, 9);
 
     tvd_set_out_buf(buf_y, buf_c);
@@ -214,8 +218,8 @@ void tvd_set_out_fmt(tvd_out_fmt_e fmt)
 
 void tvd_set_bluescreen_mode(tvd_blue_mode_e mode)
 {
-    uint32_t val = read32(F1C100S_TVD_BASE+TVD_DMA_CFG) & ~(3 << 4);
-    write32(F1C100S_TVD_BASE+TVD_DMA_CFG, val | (mode << 4));
+    uint32_t val = read32(F1C100S_TVD_BASE+TVD_REG_F14) & ~(3 << 4);
+    write32(F1C100S_TVD_BASE+TVD_REG_F14, val | (mode << 4));
 }
 
 static void tvd_dma_enable(void)

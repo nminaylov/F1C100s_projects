@@ -12,7 +12,9 @@
 
 void tve_init(tve_mode_e mode)
 {
-    clk_tve_config(11); // 297/11 = 27
+    // Determine tve clock division value. PLL_VIDEO should be configured and enabled!
+    uint32_t tve_clk_div = clk_pll_get_freq(PLL_VIDEO) / 27000000LU;
+    clk_tve_config(tve_clk_div);
     clk_enable(CCU_BUS_CLK_GATE1, 10);
     clk_reset_clear(CCU_BUS_SOFT_RST1, 10);
 
