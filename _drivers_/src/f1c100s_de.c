@@ -176,6 +176,10 @@ void de_lcd_init(de_lcd_config_t *params)
     de.width = params->width;
     de.mode = DE_LCD;
 
+    clk_reset_set(CCU_BUS_SOFT_RST1, 14);
+    clk_reset_set(CCU_BUS_SOFT_RST1, 12);
+    clk_reset_set(CCU_BUS_SOFT_RST1, 4);
+
     debe_clk_init();
     defe_clk_init();
     tcon_clk_init();
@@ -232,6 +236,10 @@ void de_tv_init(tve_mode_e mode, uint16_t hor_lines)
     de.mode = DE_TV;
     de.width = 720;
     (mode == TVE_MODE_NTSC) ? (de.height = 480) : (de.height = 576);
+
+    clk_reset_set(CCU_BUS_SOFT_RST1, 14);
+    clk_reset_set(CCU_BUS_SOFT_RST1, 12);
+    clk_reset_set(CCU_BUS_SOFT_RST1, 4);
 
     debe_clk_init();
     defe_clk_init();
