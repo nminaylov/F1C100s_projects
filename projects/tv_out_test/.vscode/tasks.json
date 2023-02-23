@@ -1,0 +1,34 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build",
+            "type": "process",
+            "command": "make",
+            "args": [],
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Clean",
+            "type": "process",
+            "command": "make",
+            "args": [
+                "clean"
+            ],
+            "problemMatcher": [],
+            "group": "build"
+        },
+        {
+            "label": "CompileDB update",
+            "type": "shell",
+            "command": "compiledb make",
+            "args": [],
+            "problemMatcher": [],
+            "group": "build"
+        },
+    ]
+}

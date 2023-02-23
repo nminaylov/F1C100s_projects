@@ -13,28 +13,17 @@ AS           = $(TOOLCHAIN)gcc -x assembler-with-cpp
 
 # user specific
 SRCS += \
-	../_drivers_/src/f1c100s_pwm.c \
-	../_drivers_/src/f1c100s_timer.c \
-	../_drivers_/src/f1c100s_de.c \
-	../_drivers_/src/f1c100s_tve.c \
-	../_drivers_/src/f1c100s_tvd.c \
-	../_drivers_/src/f1c100s_clock.c \
-	../_drivers_/src/f1c100s_gpio.c \
-	../_drivers_/src/f1c100s_intc.c \
-	../_drivers_/src/f1c100s_uart.c \
-	../_drivers_/src/f1c100s_sdc.c \
-	../_drivers_/src/f1c100s_touch.c \
-	../_lib_/src/printf.c \
-	../_lib_/src/syscalls.c
-	
-SRCS += \
-	../_arm926_/src/start.S \
-	../_arm926_/src/cache-v5.S
-	
+	$(PROJROOT)/f1c100s/arm926/src/start.S \
+	$(PROJROOT)/f1c100s/arm926/src/cache-v5.S
+
+SRCS += $(wildcard $(PROJROOT)/f1c100s/drivers/src/*.c)
+
+SRCS += $(PROJROOT)/lib/src/printf.c \
+		$(PROJROOT)/lib/src/syscalls.c
 
 # include
 LIBS 		+= -lgcc -lm -lc_nano 
-INCLUDES	+= -I../_arm926_/inc -I../_drivers_/inc -I../_lib_/inc
+INCLUDES	+= -I$(PROJROOT)/f1c100s/arm926/inc -I$(PROJROOT)/f1c100s/drivers/inc -I$(PROJROOT)/lib/inc
 
 ELF = $(BUILDDIR)/$(PROJECT_NAME).elf
 BIN = $(BUILDDIR)/$(PROJECT_NAME).bin
@@ -58,7 +47,6 @@ LDFLAGS += -nostartfiles -Xlinker --gc-sections -T$(LINK_SCRIPT) -Wl,-Map=$(BUIL
 #
 $(BIN): $(ELF)
 	$(CP) -O binary $< $@
-	@echo   ---------------------------------------------------
 	@$(SZ) $(ELF)
 
 $(ELF): $(OBJS)
@@ -70,10 +58,6 @@ $(BUILDDIR)/%.o: %.c
 
 $(BUILDDIR)/%.o: %.S
 	$(CC) -c $(ASFLAGS) $(INCLUDES) $< -o $@
-
-size:
-	@echo   ---------------------------------------------------
-	@$(SZ) $(ELF)
 
 clean:
 	rm -rf $(BUILDDIR)/

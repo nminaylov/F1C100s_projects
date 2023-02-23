@@ -1,0 +1,37 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "projects/hello_led"
+		},
+		{
+			"path": "projects/lcd_test"
+		},
+		{
+			"path": "projects/LVGL_demo"
+		},
+		{
+			"path": "projects/doom"
+		},
+		{
+			"path": "projects/sd_card_test"
+		},
+		{
+			"path": "projects/simple_loader"
+		},
+		{
+			"path": "projects/tv_in_test"
+		},
+		{
+			"path": "projects/tv_out_test"
+		},
+		// Add your project here
+	],
+	"settings": {
+        "files.exclude": {
+            "projects": true,
+		},
+    },
+}

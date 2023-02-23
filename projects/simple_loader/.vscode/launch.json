@@ -1,0 +1,20 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "cortex-debug",
+            "request": "launch",
+            "name": "Debug (OpenOCD)",
+            "servertype": "openocd",
+            "cwd": ".",
+            "preLaunchTask": "Build",
+            "runToEntryPoint": "main",
+            "executable": "./build/simple_loader.elf",
+            "device": "F1C100s",
+            "configFiles": [
+                "interface/ftdi/digilent-hs1.cfg",
+                "../../allwinner_f1c100s.cfg"
+            ],
+        }
+    ]
+}
