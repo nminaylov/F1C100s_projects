@@ -393,7 +393,13 @@ static void tcon0_init(de_lcd_config_t *params) // TCON0 -> LCD
     write32(F1C100S_TCON_BASE + TCON0_TIMING_V, ((total*2) << 16) | ((bp-1) << 0));
     write32(F1C100S_TCON_BASE + TCON0_TIMING_SYNC, ((params->h_sync_len-1) << 16) | ((params->v_sync_len-1) << 0));
 
-    write32(F1C100S_TCON_BASE + TCON0_HV_INTF, 0);
+    if (params->bus_mode == DE_LCD_SERIAL_RGB) // TODO: RGB order
+        write32(F1C100S_TCON_BASE + TCON0_HV_INTF, (1UL << 31));
+    else if (params->bus_mode == DE_LCD_SERIAL_YUV) // TODO: YUV order
+        write32(F1C100S_TCON_BASE + TCON0_HV_INTF, (1UL << 31) | (1UL << 31));
+    else
+        write32(F1C100S_TCON_BASE + TCON0_HV_INTF, 0);
+
     write32(F1C100S_TCON_BASE + TCON0_CPU_INTF, 0);
 
     write32(F1C100S_TCON_BASE + TCON_FRM_SEED + 0*4, 0x11111111);

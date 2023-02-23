@@ -20,6 +20,13 @@ typedef enum
 
 typedef enum
 {
+    DE_LCD_PARALLEL_RGB,
+    DE_LCD_SERIAL_RGB,
+    DE_LCD_SERIAL_YUV,
+} de_lcd_bus_mode_e;
+
+typedef enum
+{
     DE_LCD,
     DE_TV,
 } de_mode_e;
@@ -70,6 +77,7 @@ typedef struct
     int32_t width;
     int32_t height;
     int32_t bus_width;
+    int32_t bus_mode;
 
     int32_t pixel_clock_hz;
     int32_t h_front_porch;
