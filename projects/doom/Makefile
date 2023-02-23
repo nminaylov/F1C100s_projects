@@ -11,14 +11,12 @@ LINK_SCRIPT = $(PROJROOT)/f1c100s/f1c100s_dram.ld
 
 # source files
 SRCS += \
-	src/system.c \
-	src/exception.c \
-	src/main.c \
-	src/display.c \
-	src/sdcard.c \
-	src/diskio.c \
-	fatfs/ff.c \
+	$(wildcard *.c) \
 	$(addprefix $(DOOMDIR)/,$(SRC_DOOM)) \
+	fatfs/ff.c \
+
+SRCS += display/display.c
+# SRCS += display/display_7010b.c	
 	
 DOOMDIR  = doom
 SRC_DOOM = \
@@ -34,7 +32,7 @@ SRC_DOOM = \
 	sounds.c statdump.c st_lib.c st_stuff.c s_sound.c tables.c v_video.c \
 	wi_stuff.c w_checksum.c w_file.c w_file_stdc.c w_main.c w_wad.c z_zone.c \
 	
-INCLUDES += -I. -Iinc -Ifatfs -Idoom
+INCLUDES += -I. -Idisplay -Ifatfs -Idoom
 
 # Define optimisation level here
 OPT = -Og

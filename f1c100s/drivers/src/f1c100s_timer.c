@@ -1,13 +1,7 @@
-/********************************************/ /**
- * @file f1c100s_timer.c
- * @brief F1C100s Timer module driver
- * @author n.minaylov
- ***********************************************/
-
 #include "f1c100s_timer.h"
 #include "io.h"
 
-/************** Timers ***************/
+/************** General-purpose imers ***************/
 
 void tim_init(uint8_t ch, tim_mode_e mode, tim_source_e src, tim_prescaller_e psc) {
     uint32_t val = (mode << 7) | (psc << 4) | (src << 2);
@@ -57,7 +51,9 @@ inline void tim_clear_irq(uint8_t ch) {
     write32(F1C100S_TIM_BASE + TIM_IRQ_STA, (1 << ch));
 }
 
-/************** Watchdog ***************/
+//  TODO: aws
+
+/************** Watchdog timer ***************/
 
 void wdg_init(wdg_mode_e mode, wdg_period_e period) {
     write32(F1C100S_TIM_BASE + WDG_CFG, mode);

@@ -10,7 +10,7 @@
 			"path": "projects/lcd_test"
 		},
 		{
-			"path": "projects/LVGL_demo"
+			"path": "projects/lvgl_demo"
 		},
 		{
 			"path": "projects/doom"

@@ -1,10 +1,12 @@
-#ifndef __CACHE_H__
-#define __CACHE_H__
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stdint.h>
 
-static inline void cache_inv_range(unsigned long start, unsigned long end)
-{
+static inline void cache_inv_range(unsigned long start, unsigned long end) {
 #if __ARM32_ARCH__ == 4
     extern void v4_cache_inv_range(unsigned long start, unsigned long end);
     v4_cache_inv_range(start, end);
@@ -23,8 +25,7 @@ static inline void cache_inv_range(unsigned long start, unsigned long end)
 #endif
 }
 
-static inline void cache_clean_range(unsigned long start, unsigned long end)
-{
+static inline void cache_clean_range(unsigned long start, unsigned long end) {
 #if __ARM32_ARCH__ == 4
     extern void v4_cache_clean_range(unsigned long start, unsigned long end);
     v4_cache_clean_range(start, end);
@@ -43,8 +44,7 @@ static inline void cache_clean_range(unsigned long start, unsigned long end)
 #endif
 }
 
-static inline void cache_flush_range(unsigned long start, unsigned long end)
-{
+static inline void cache_flush_range(unsigned long start, unsigned long end) {
 #if __ARM32_ARCH__ == 4
     extern void v4_cache_flush_range(unsigned long start, unsigned long end);
     v4_cache_flush_range(start, end);
@@ -63,4 +63,6 @@ static inline void cache_flush_range(unsigned long start, unsigned long end)
 #endif
 }
 
-#endif /* __CACHE_H__ */
+#ifdef __cplusplus
+}
+#endif

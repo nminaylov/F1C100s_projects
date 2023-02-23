@@ -10,9 +10,9 @@ PROJROOT := ../..
 LINK_SCRIPT = $(PROJROOT)/f1c100s/f1c100s_sram.ld
 
 # source files
-SRCS += $(wildcard src/*.c)
+SRCS += $(wildcard *.c)
 	
-INCLUDES += -I. -Iinc
+INCLUDES += -I.
 
 # Define optimisation level here
 OPT = -O0

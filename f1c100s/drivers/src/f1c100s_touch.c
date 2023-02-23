@@ -1,14 +1,7 @@
-/********************************************//**
- * @file f1c100s_touch.c
- * @brief F1C100s Resistive touch controller driver
- * @author n.minaylov
- ***********************************************/
-
 #include "f1c100s_touch.h"
 #include "io.h"
 
-void tp_init(void)
-{
+void tp_init(void) {
     uint32_t val = (0xF << 24) | (1 << 23); // ADC_FIRST_DLY ?
     val |= (0 << 22) | (0 << 20); // CLK_IN: 24M/2
     val |= (7 << 16); // FS: CLK_IN/2^(20-7) = CLK_IN/8192 =~ 1464Hz
@@ -33,40 +26,33 @@ void tp_init(void)
     tp_fifo_set_trig_level(2);
 }
 
-void tp_int_config(uint32_t int_mask)
-{
+void tp_int_config(uint32_t int_mask) {
     uint32_t val = read32(F1C100S_TP_BASE + TP_INT_FIFO_CTRL);
     val &= ~(TP_INT_OVERRUN | TP_INT_FIFO_DATA | TP_INT_UP | TP_INT_DOWN);
     write32(F1C100S_TP_BASE + TP_INT_FIFO_CTRL, val | int_mask);
 }
 
-uint32_t tp_int_get_state(void)
-{
+uint32_t tp_int_get_state(void) {
     uint32_t val = read32(F1C100S_TP_BASE + TP_INT_FIFO_CTRL);
     val &= (TP_INT_OVERRUN | TP_INT_FIFO_DATA | TP_INT_UP | TP_INT_DOWN);
     return val;
 }
 
-void tp_int_clear(uint32_t int_mask)
-{
+void tp_int_clear(uint32_t int_mask) {
     set32(F1C100S_TP_BASE + TP_INT_FIFO_STAT, int_mask);
 }
 
-void tp_fifo_flush(void)
-{
+void tp_fifo_flush(void) {
     set32(F1C100S_TP_BASE + TP_INT_FIFO_STAT, (1 << 4));
 }
 
-void tp_fifo_set_trig_level(uint8_t lvl)
-{
+void tp_fifo_set_trig_level(uint8_t lvl) {
     uint32_t val = read32(F1C100S_TP_BASE + TP_INT_FIFO_CTRL) & ~(0x1F << 8);
     write32(F1C100S_TP_BASE + TP_INT_FIFO_CTRL, val | lvl);
 }
 
-void tp_fifo_read(uint16_t * data, uint8_t len)
-{
-    for (uint8_t i = 0; i < len; i++)
-    {
+void tp_fifo_read(uint16_t* data, uint8_t len) {
+    for(uint8_t i = 0; i < len; i++) {
         data[i] = read32(F1C100S_TP_BASE + TP_DATA);
     }
 }

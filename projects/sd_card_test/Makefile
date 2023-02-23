@@ -11,10 +11,13 @@ LINK_SCRIPT = $(PROJROOT)/f1c100s/f1c100s_dram.ld
 
 # source files
 SRCS += \
-	$(wildcard src/*.c) \
+	$(wildcard *.c) \
 	fatfs/ff.c \
+
+SRCS += display/display.c
+# SRCS += display/display_7010b.c	
 	
-INCLUDES += -I. -Iinc -Ifatfs
+INCLUDES += -I. -Idisplay -Ifatfs
 
 # Define optimisation level here
 OPT = -Og

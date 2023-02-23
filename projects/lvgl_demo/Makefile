@@ -10,9 +10,9 @@ PROJROOT := ../..
 LINK_SCRIPT = $(PROJROOT)/f1c100s/f1c100s_dram.ld
 
 # source files
-SRCS += $(wildcard src/*.c)
+SRCS += $(wildcard *.c)
 	
-INCLUDES += -I. -Iinc
+INCLUDES += -I.
 INCLUDES += -Ilvgl
 
 # Define optimisation level here
