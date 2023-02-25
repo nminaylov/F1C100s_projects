@@ -1,6 +1,6 @@
 #include "system.h"
 #include <stdint.h>
-#include "mmu.h"
+#include "armv5_mmu.h"
 #include "arm32.h"
 #include "sizes.h"
 #include "f1c100s_clock.h"

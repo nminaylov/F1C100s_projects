@@ -36,4 +36,6 @@ ENTRY(v5_cache_flush_range)
 	mov	pc, lr
 ENDPROC(v5_cache_flush_range)
 
+#else
+#error "Wrong __ARM32_ARCH__ defined"
 #endif

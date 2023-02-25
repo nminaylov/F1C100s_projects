@@ -74,9 +74,8 @@ void timer_init(void) {
 
 void timer_irq_handler(void) {
     static uint16_t step = 0;
-    static uint8_t dir = 0;
-    tick_flag = 1;
-    //printf("tim_irq!\r\n");
+    static uint8_t dir   = 0;
+    tick_flag            = 1;
     if(dir == 0) { // First half of sinewave
         step++;
         if(step == LED_FADE_STEPS / 2 - 1) dir = 1;

@@ -5,19 +5,18 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#include "f1c100s_periph.h"
 
-#define F1C100S_GPIO_BASE (0x01C20800)
+#define GPIOA (GPIO_BASE + 0 * 0x24)
+#define GPIOB (GPIO_BASE + 1 * 0x24)
+#define GPIOC (GPIO_BASE + 2 * 0x24)
+#define GPIOD (GPIO_BASE + 3 * 0x24)
+#define GPIOE (GPIO_BASE + 4 * 0x24)
+#define GPIOF (GPIO_BASE + 5 * 0x24)
 
-#define GPIOA (F1C100S_GPIO_BASE + 0 * 0x24)
-#define GPIOB (F1C100S_GPIO_BASE + 1 * 0x24)
-#define GPIOC (F1C100S_GPIO_BASE + 2 * 0x24)
-#define GPIOD (F1C100S_GPIO_BASE + 3 * 0x24)
-#define GPIOE (F1C100S_GPIO_BASE + 4 * 0x24)
-#define GPIOF (F1C100S_GPIO_BASE + 5 * 0x24)
-
-#define GPIOD_INT (F1C100S_GPIO_BASE + 0x200 + 0 * 0x20)
-#define GPIOE_INT (F1C100S_GPIO_BASE + 0x200 + 1 * 0x20)
-#define GPIOF_INT (F1C100S_GPIO_BASE + 0x200 + 2 * 0x20)
+#define GPIOD_INT (GPIO_BASE + 0x200 + 0 * 0x20)
+#define GPIOE_INT (GPIO_BASE + 0x200 + 1 * 0x20)
+#define GPIOF_INT (GPIO_BASE + 0x200 + 2 * 0x20)
 
 typedef enum {
     GPIO_CFG0 = 0x00,
@@ -115,28 +114,40 @@ typedef enum {
 } eint_debounce_div_e;
 
 void gpio_init(uint32_t port, uint32_t pin_mask, gpio_mode_e mode, gpio_pull_e pull, gpio_drv_e drv);
+
 void gpio_pin_init(uint32_t port, uint8_t pin_n, gpio_mode_e mode, gpio_pull_e pull, gpio_drv_e drv);
 
 uint32_t gpio_read(uint32_t port);
+
 uint8_t gpio_pin_get(uint32_t port, uint8_t pin_n);
 
 void gpio_write(uint32_t port, uint32_t val);
+
 void gpio_set(uint32_t port, uint32_t pin_mask);
+
 void gpio_clear(uint32_t port, uint32_t pin_mask);
+
 void gpio_pin_set(uint32_t port, uint8_t pin_n);
+
 void gpio_pin_clear(uint32_t port, uint8_t pin_n);
+
 void gpio_pin_toggle(uint32_t port, uint8_t pin_n);
 
 void eint_pin_init(uint32_t int_port, uint8_t pin_n, eint_trigger_mode_e trg);
+
 void eint_pin_enable(uint32_t int_port, uint8_t pin_n);
+
 void eint_pin_disable(uint32_t int_port, uint8_t pin_n);
+
 void eint_debounce_config(
     uint32_t int_port,
     eint_debounce_src_e deb_src,
     eint_debounce_div_e deb_div);
 
 uint32_t eint_get_status(uint32_t int_port);
+
 uint8_t eint_pin_get_status(uint32_t int_port, uint8_t pin_n);
+
 void eint_pin_clear_status(uint32_t int_port, uint8_t pin_n);
 
 #ifdef __cplusplus

@@ -1,0 +1,44 @@
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define SRAMC_BASE (0x01C00000)
+#define DRAMC_BASE (0x01C01000)
+#define DMA_BASE (0x01C02000)
+#define SPI0_BASE (0x01C05000)
+#define SPI1_BASE (0x01C06000)
+#define TVE_BASE (0x01C0A000)
+#define TVD_BASE (0x01C0B000)
+#define TCON_BASE (0x01C0C000)
+#define VE_BASE (0x01C0E000)
+#define SDC0_BASE (0x01C0F000)
+#define SDC1_BASE (0x01C10000)
+#define USB_BASE (0x01C13000)
+#define CCU_BASE (0x01C20000)
+#define INTC_BASE (0x01C20400)
+#define GPIO_BASE (0x01C20800)
+#define TIMER_BASE (0x01C20C00)
+#define PWM_BASE (0x01C21000)
+#define OWA_BASE (0x01C21400)
+#define RSB_BASE (0x01C21800)
+#define I2S_BASE (0x01C22000)
+#define CIR_BASE (0x01C22C00)
+#define KEYADC_BASE (0x01C23400)
+#define CODEC_BASE (0x01C23C00)
+#define RTP_BASE (0x01C24800)
+#define UART0_BASE (0x01C25000)
+#define UART1_BASE (0x01C25400)
+#define UART2_BASE (0x01C25800)
+#define I2C0_BASE (0x01C27000)
+#define I2C1_BASE (0x01C27400)
+#define I2C2_BASE (0x01C27800)
+#define CAMERA_BASE (0x01CB0000)
+#define DEFE_BASE (0x01E00000)
+#define DEBE_BASE (0x01E60000)
+#define DEIN_BASE (0x01E70000)
+
+#ifdef __cplusplus
+}
+#endif

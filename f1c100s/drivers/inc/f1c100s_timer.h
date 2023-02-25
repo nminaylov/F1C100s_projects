@@ -5,8 +5,7 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-
-#define F1C100S_TIM_BASE (0x01C20C00)
+#include "f1c100s_periph.h"
 
 typedef enum {
     TIM0 = 0,
@@ -60,20 +59,6 @@ typedef enum {
     TIM_PSC_128 = 7,
 } tim_prescaller_e;
 
-void tim_init(uint8_t ch, tim_mode_e mode, tim_source_e src, tim_prescaller_e psc);
-void tim_set_period(uint8_t ch, uint32_t val);
-uint32_t tim_get_cnt(uint8_t ch);
-void tim_set_cnt(uint8_t ch, uint32_t val);
-
-void tim_start(uint8_t ch);
-void tim_stop(uint8_t ch);
-void tim_reload(uint8_t ch);
-
-void tim_int_enable(uint8_t ch);
-void tim_int_disable(uint8_t ch);
-uint8_t tim_get_int_status(void);
-void tim_clear_irq(uint8_t ch);
-
 typedef enum {
     WDG_MODE_RESET = 1,
     WDG_MODE_INT   = 2,
@@ -94,9 +79,34 @@ typedef enum {
     WDG_INTV_16S   = 11,
 } wdg_period_e;
 
+void tim_init(uint8_t ch, tim_mode_e mode, tim_source_e src, tim_prescaller_e psc);
+
+void tim_set_period(uint8_t ch, uint32_t val);
+
+uint32_t tim_get_cnt(uint8_t ch);
+
+void tim_set_cnt(uint8_t ch, uint32_t val);
+
+void tim_start(uint8_t ch);
+
+void tim_stop(uint8_t ch);
+
+void tim_reload(uint8_t ch);
+
+void tim_int_enable(uint8_t ch);
+
+void tim_int_disable(uint8_t ch);
+
+uint8_t tim_get_int_status(void);
+
+void tim_clear_irq(uint8_t ch);
+
 void wdg_init(wdg_mode_e mode, wdg_period_e period);
+
 void wdg_disable(void);
+
 void wdg_feed(void);
+
 uint8_t wdg_get_int_status(void);
 
 #ifdef __cplusplus

@@ -5,8 +5,7 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-
-#define F1C100S_CCU_BASE (0x01C20000)
+#include "f1c100s_periph.h"
 
 typedef enum {
     CCU_PLL_CPU_CTRL    = 0x000,
@@ -104,33 +103,47 @@ typedef enum {
 } clk_source_vid_e;
 
 void clk_pll_enable(pll_ch_e pll);
+
 void clk_pll_disable(pll_ch_e pll);
 
-void clk_pll_enable(pll_ch_e pll);
-void clk_pll_disable(pll_ch_e pll);
 uint8_t clk_pll_is_locked(pll_ch_e pll);
+
 void clk_pll_init(pll_ch_e pll, uint8_t mul, uint8_t div);
+
 uint32_t clk_pll_get_freq(pll_ch_e pll);
 
 void clk_enable(uint32_t reg, uint8_t bit);
+
 void clk_disable(uint32_t reg, uint8_t bit);
 
 void clk_cpu_config(clk_source_cpu_e source);
+
 void clk_hclk_config(uint8_t div);
+
 void clk_ahb_config(clk_source_ahb_e src, uint8_t prediv, uint8_t div);
+
 void clk_apb_config(clk_div_apb_e div);
+
 void clk_de_config(uint32_t reg, clk_source_de_e source, uint8_t div);
+
 void clk_tcon_config(clk_source_vid_e source);
+
 void clk_tve_config(uint8_t div);
+
 void clk_tvd_config(uint8_t div);
+
 uint32_t clk_sdc_config(uint32_t reg, uint32_t freq);
 
 uint32_t clk_cpu_get_freq(void);
+
 uint32_t clk_hclk_get_freq(void);
+
 uint32_t clk_ahb_get_freq(void);
+
 uint32_t clk_apb_get_freq(void);
 
 void clk_reset_set(uint32_t reg, uint8_t bit);
+
 void clk_reset_clear(uint32_t reg, uint8_t bit);
 
 #ifdef __cplusplus

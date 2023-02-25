@@ -5,13 +5,7 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-
-#define F1C100S_TVE_BASE (0x01C0A000)
-
-typedef enum {
-    TVE_MODE_NTSC,
-    TVE_MODE_PAL,
-} tve_mode_e;
+#include "f1c100s_periph.h"
 
 typedef enum {
     TVE_ENABLE      = 0x000,
@@ -52,8 +46,15 @@ typedef enum {
     TVE_CFG4        = 0x13C,
 } tve_reg_e;
 
+typedef enum {
+    TVE_MODE_NTSC,
+    TVE_MODE_PAL,
+} tve_mode_e;
+
 void tve_init(tve_mode_e mode);
+
 void tve_enable(void);
+
 void tve_disable(void);
 
 #ifdef __cplusplus

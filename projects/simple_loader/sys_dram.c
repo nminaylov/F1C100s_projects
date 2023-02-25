@@ -19,8 +19,8 @@
 #define SDR_T_XP (0x0)
 
 enum dram_type_t {
-    DRAM_TYPE_SDR = 0,
-    DRAM_TYPE_DDR = 1,
+    DRAM_TYPE_SDR  = 0,
+    DRAM_TYPE_DDR  = 1,
     DRAM_TYPE_MDDR = 2,
 };
 
@@ -72,8 +72,8 @@ static int dram_delay_scan(void) {
 }
 
 static void dram_set_autofresh_cycle(uint32_t clk) {
-    uint32_t val = 0;
-    uint32_t row = 0;
+    uint32_t val  = 0;
+    uint32_t row  = 0;
     uint32_t temp = 0;
 
     row = read32(F1C100S_DRAM_BASE + DRAM_SCONR);
@@ -121,7 +121,7 @@ static int dram_para_setup(struct dram_para_t* para) {
 static uint32_t dram_check_delay(uint32_t bwidth) {
     uint32_t dsize;
     uint32_t i, j;
-    uint32_t num = 0;
+    uint32_t num   = 0;
     uint32_t dflag = 0;
 
     dsize = ((bwidth == 16) ? 4 : 2);
@@ -157,7 +157,7 @@ static int sdr_readpipe_scan(void) {
 
 static uint32_t sdr_readpipe_select(void) {
     uint32_t value = 0;
-    uint32_t i = 0;
+    uint32_t i     = 0;
     for(i = 0; i < 8; i++) {
         write32(
             F1C100S_DRAM_BASE + DRAM_SCTLR,
@@ -171,7 +171,7 @@ static uint32_t sdr_readpipe_select(void) {
 }
 
 static uint32_t dram_check_type(struct dram_para_t* para) {
-    uint32_t val = 0;
+    uint32_t val   = 0;
     uint32_t times = 0;
     uint32_t i;
 
@@ -212,7 +212,7 @@ static uint32_t dram_scan_readpipe(struct dram_para_t* para) {
                 readpipe[i] = dram_check_delay(para->bwidth);
             }
             if(rp_val < readpipe[i]) {
-                rp_val = readpipe[i];
+                rp_val  = readpipe[i];
                 rp_best = i;
             }
         }
@@ -227,7 +227,7 @@ static uint32_t dram_scan_readpipe(struct dram_para_t* para) {
         val &= (~(0x3 << 13));
         write32(F1C100S_DRAM_BASE + DRAM_SCONR, val);
         rp_best = sdr_readpipe_select();
-        val = read32(F1C100S_DRAM_BASE + DRAM_SCTLR);
+        val     = read32(F1C100S_DRAM_BASE + DRAM_SCTLR);
         val &= ~(0x7 << 6);
         val |= (rp_best << 6);
         write32(F1C100S_DRAM_BASE + DRAM_SCTLR, val);
@@ -237,8 +237,8 @@ static uint32_t dram_scan_readpipe(struct dram_para_t* para) {
 
 static uint32_t dram_get_dram_size(struct dram_para_t* para) {
     uint32_t colflag = 10, rowflag = 13;
-    uint32_t i = 0;
-    uint32_t val1 = 0;
+    uint32_t i     = 0;
+    uint32_t val1  = 0;
     uint32_t count = 0;
     uint32_t addr1, addr2;
 
@@ -259,7 +259,7 @@ static uint32_t dram_get_dram_size(struct dram_para_t* para) {
     } else {
         colflag = 10;
     }
-    count = 0;
+    count           = 0;
     para->col_width = colflag;
     para->row_width = rowflag;
     dram_para_setup(para);
@@ -386,18 +386,18 @@ static int dram_init(struct dram_para_t* para) {
 uint8_t sys_dram_init(void) {
     struct dram_para_t dram;
 
-    dram.base = 0x80000000;
-    dram.size = 0;
-    dram.clk = PLL_DDR_CLK / 1000000;
+    dram.base        = 0x80000000;
+    dram.size        = 0;
+    dram.clk         = PLL_DDR_CLK / 1000000;
     dram.access_mode = 1;
-    dram.cs_num = 1;
-    dram.ddr8_remap = 0;
-    dram.sdr_ddr = DRAM_TYPE_DDR;
-    dram.bwidth = 16;
-    dram.col_width = 10;
-    dram.row_width = 13;
-    dram.bank_size = 4;
-    dram.cas = 0x3;
+    dram.cs_num      = 1;
+    dram.ddr8_remap  = 0;
+    dram.sdr_ddr     = DRAM_TYPE_DDR;
+    dram.bwidth      = 16;
+    dram.col_width   = 10;
+    dram.row_width   = 13;
+    dram.bank_size   = 4;
+    dram.cas         = 0x3;
 
     if(dram_init(&dram))
         return dram.size;

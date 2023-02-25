@@ -1,6 +1,6 @@
 OUTPUT_FORMAT("elf32-littlearm", "elf32-bigarm", "elf32-littlearm")
 OUTPUT_ARCH(arm)
-ENTRY(_start)
+ENTRY(_image_start)
 
 STACK_UND_SIZE = 0x100;
 STACK_ABT_SIZE = 0x100;
@@ -19,8 +19,9 @@ SECTIONS
 	.text :
 	{
 		PROVIDE(__image_start = .);
+		*(.image_header)
 		PROVIDE(__text_start = .);
-		build/start.o (.text)
+		*(.vectors)
 		*(.text*)
 		PROVIDE(__text_end = .);
 	} > sram

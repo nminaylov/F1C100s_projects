@@ -5,14 +5,11 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#include "f1c100s_periph.h"
 
-#define F1C100S_UART0_BASE (0x01C25000)
-#define F1C100S_UART1_BASE (0x01C25400)
-#define F1C100S_UART2_BASE (0x01C25800)
-
-#define UART0 F1C100S_UART0_BASE
-#define UART1 F1C100S_UART1_BASE
-#define UART2 F1C100S_UART2_BASE
+#define UART0 UART0_BASE
+#define UART1 UART1_BASE
+#define UART2 UART2_BASE
 
 typedef enum {
     UART_RBR = 0x00,
@@ -82,13 +79,17 @@ typedef enum {
 void uart_init(uint32_t uart, uint32_t baud);
 
 void uart_set_baudrate(uint32_t uart, uint32_t baud);
+
 void uart_set_parity(uint32_t uart, uart_parity_e par);
+
 void uart_set_data_bits(uint32_t uart, uart_len_e len);
 
 void uart_tx(uint32_t uart, uint8_t data);
+
 uint8_t uart_get_rx(uint32_t uart);
 
 uart_int_id_e uart_get_int_id(uint32_t uart);
+
 uint8_t uart_get_status(uint32_t uart);
 
 #ifdef __cplusplus

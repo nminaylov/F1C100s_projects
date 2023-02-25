@@ -1,41 +1,14 @@
 #include "linkage.h"
 
-.text
-    .arm
+.section ".vectors", "ax"
 
-#if defined (EGON_HEADER)
-
-    /* Boot head information for BROM */
-    b _start
-    .byte 'e', 'G', 'O', 'N', '.', 'B', 'T', '0'
-    .long 0, __image_end     /* checksum, len */
-    .byte 'S', 'P', 'L', 2
-    .long 0, 0
-    .long 0, 0, 0, 0, 0, 0, 0, 0
-    .long 0, 0, 0, 0, 0, 0, 0, 0
-
-#endif
-
-#if defined (LOAD_HEADER)
-
-    /* Boot head information for BROM */
-    b _start
-    .long 0x555AAAFF
-    .long (__image_start)   /* start */
-    .long (__image_end)     /* end */
-    .long 0     /* reserved */
-    .long 0     /* reserved for CRC */
-
-#endif
-
-/*
- * Exception vector table
- */
+.weak _image_start
+_image_start:
     
 .globl _start
 _start:
 
-_vector:
+_vectors:
     b reset
     ldr pc, _undefined_instruction
     ldr pc, _software_interrupt
@@ -61,9 +34,6 @@ _fiq:
     .word fiq
 
 reset:
-/*
- * The actual reset code
- */
     /* Enter svc mode and mask interrupts */
     mrs r0, cpsr
     bic r0, r0, #0x1f
@@ -75,8 +45,8 @@ reset:
     bic r0, #(1<<13)
     mcr p15, 0, r0, c1, c0, 0
 
-    /* Copy vector to the correct address */
-    adr r0, _vector
+    /* Copy vectors to the correct address */
+    adr r0, _vectors
     mrc p15, 0, r2, c1, c0, 0
     ands r2, r2, #(1 << 13)
     ldreq r1, =0x00000000
@@ -129,9 +99,7 @@ _main:
     bl main
     b _main
 
-/*
- * Exception handlers
- */
+/* Exception handlers */
     .align 5
 undefined_instruction:
     ldr sp, _stack_und_end
@@ -144,7 +112,7 @@ undefined_instruction:
     str r6, [r8, #4]
     str r0, [r8, #8]
     mov r0, sp
-    bl _undefined_instruction_
+    bl undefined_instruction_handler
 
     .align 5
 software_interrupt:
@@ -158,7 +126,7 @@ software_interrupt:
     str r6, [r8, #4]
     str r0, [r8, #8]
     mov r0, sp
-    bl _software_interrupt_
+    bl software_interrupt_handler
     ldmia sp, {r0 - lr}^
     mov r0, r0
     ldr lr, [sp, #60]
@@ -177,7 +145,7 @@ prefetch_abort:
     str r6, [r8, #4]
     str r0, [r8, #8]
     mov r0, sp
-    bl _prefetch_abort_
+    bl prefetch_abort_handler
 
     .align 5
 data_abort:
@@ -191,7 +159,7 @@ data_abort:
     str r6, [r8, #4]
     str r0, [r8, #8]
     mov r0, sp
-    bl _data_abort_
+    bl data_abort_handler
 
     .align 5
 not_used:
@@ -209,7 +177,7 @@ irq:
     str r6, [r8, #4]
     str r0, [r8, #8]
     mov r0, sp
-    bl irq_handler_global
+    bl irq_handler
     ldmia sp, {r0 - lr}^
     mov r0, r0
     ldr lr, [sp, #60]
@@ -228,18 +196,15 @@ fiq:
     str r6, [r8, #4]
     str r0, [r8, #8]
     mov r0, sp
-    bl irq_handler_global
+    bl irq_handler
     ldmia sp, {r0 - lr}^
     mov r0, r0
     ldr lr, [sp, #60]
     add sp, sp, #72
     subs pc, lr, #4
 
-/*
- * The location of section
- */
+/* The location of sections */
      .align 4
-
 _data_start:
     .long __data_start
 _data_end:
@@ -258,27 +223,30 @@ _stack_fiq_end:
     .long __stack_fiq_end
 _stack_svc_end:
     .long __stack_svc_end
-/*
- * Default exception handlers
- */
 
-ENTRY(_undefined_instruction_)
+/* Default exception handlers */
+ENTRY(undefined_instruction_handler)
     b .
-ENDPROC(_undefined_instruction_)
+ENDPROC(undefined_instruction_handler)
 
-ENTRY(_software_interrupt_)
+ENTRY(software_interrupt_handler)
     b .
-ENDPROC(_software_interrupt_)
+ENDPROC(software_interrupt_handler)
 
-ENTRY(_prefetch_abort_)
+ENTRY(prefetch_abort_handler)
     b .
-ENDPROC(_prefetch_abort_)
+ENDPROC(prefetch_abort_handler)
 
-ENTRY(_data_abort_)
+ENTRY(data_abort_handler)
     b .
-ENDPROC(_data_abort_)
+ENDPROC(data_abort_handler)
 
-    .weak   _undefined_instruction_
-    .weak   _software_interrupt_
-    .weak   _prefetch_abort_
-    .weak   _data_abort_
+ENTRY(irq_handler)
+    b .
+ENDPROC(irq_handler)
+
+    .weak   undefined_instruction_handler
+    .weak   software_interrupt_handler
+    .weak   prefetch_abort_handler
+    .weak   data_abort_handler
+    .weak   irq_handler

@@ -5,32 +5,7 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-
-#define F1C100S_TVD_BASE (0x01C0B000)
-
-typedef enum {
-    TVD_MODE_UNKNOWN,
-    TVD_MODE_NTSC,
-    TVD_MODE_PAL_B,
-    TVD_MODE_PAL_M,
-    TVD_MODE_PAL_N,
-    TVD_MODE_SECAM,
-} tvd_mode_e;
-
-typedef enum {
-    TVD_BLUE_OFF      = 0,
-    TVD_BLUE_FORCE_ON = 1,
-    TVD_BLUE_AUTO     = 2, // On, if no signal
-} tvd_blue_mode_e;
-
-typedef enum {
-    TVD_FMT_420_PL = (0UL << 4) | (0UL << 24),
-    TVD_FMT_420_MB = (0UL << 4) | (1UL << 24),
-    TVD_FMT_422_PL = (1UL << 4) | (0UL << 24),
-    TVD_FMT_422_MB = (1UL << 4) | (1UL << 24),
-
-    TVD_FMT_SWAP_UV = (1UL << 8),
-} tvd_out_fmt_e;
+#include "f1c100s_periph.h"
 
 typedef enum {
     TVD_REG_000 = 0x000,
@@ -111,6 +86,30 @@ typedef enum {
     TVD_REG_F84 = 0xF84,
 } tvd_reg_e;
 
+typedef enum {
+    TVD_MODE_UNKNOWN,
+    TVD_MODE_NTSC,
+    TVD_MODE_PAL_B,
+    TVD_MODE_PAL_M,
+    TVD_MODE_PAL_N,
+    TVD_MODE_SECAM,
+} tvd_mode_e;
+
+typedef enum {
+    TVD_BLUE_OFF      = 0,
+    TVD_BLUE_FORCE_ON = 1,
+    TVD_BLUE_AUTO     = 2, // On, if no signal
+} tvd_blue_mode_e;
+
+typedef enum {
+    TVD_FMT_420_PL = (0UL << 4) | (0UL << 24),
+    TVD_FMT_420_MB = (0UL << 4) | (1UL << 24),
+    TVD_FMT_422_PL = (1UL << 4) | (0UL << 24),
+    TVD_FMT_422_MB = (1UL << 4) | (1UL << 24),
+
+    TVD_FMT_SWAP_UV = (1UL << 8),
+} tvd_out_fmt_e;
+
 // Status bits in reg E40
 typedef enum {
     TVD_ST_NOISY      = (1 << 19),
@@ -127,17 +126,25 @@ typedef enum {
 } tvd_state_e;
 
 void tvd_init(tvd_mode_e mode, void* buf_y, void* buf_c, uint8_t ch);
+
 void tvd_set_mode(tvd_mode_e mode);
+
 void tvd_set_out_buf(void* buf_y, void* buf_c);
+
 void tvd_set_out_size(uint16_t w, uint16_t h);
+
 void tvd_set_out_fmt(tvd_out_fmt_e fmt);
+
 void tvd_set_bluescreen_mode(tvd_blue_mode_e mode);
+
 void tvd_set_ch(uint8_t ch);
 
 void tvd_get_out_size(uint16_t* w, uint16_t* h);
+
 uint32_t tvd_get_state(void);
 
 void tvd_enable(void);
+
 void tvd_disable(void);
 
 #ifdef __cplusplus

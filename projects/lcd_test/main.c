@@ -13,9 +13,10 @@ int main(void) {
 
     printf("Hello from firmware!\r\n");
 
-    LCD_Init(0);
+    display_init();
     display_set_bl(100);
-
+    LCD_Init(0);
+    
     LCD_printf("Hello, world!");
 
     LCD_Fill(50, 40, 100, 100, RED);

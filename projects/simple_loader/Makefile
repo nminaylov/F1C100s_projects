@@ -15,8 +15,11 @@ SRCS += $(wildcard *.c)
 INCLUDES += -I.
 
 # Define optimisation level here
-OPT = -O0
+OPT = -Os
 
 DEFS += -DEGON_HEADER # add eGON.BT0 header
+
+# DRAM size: 32M for F1C100s, 64M for F1C200s
+DRAM_SIZE = 32M
 
 include $(PROJROOT)/f1c100s_common.mk

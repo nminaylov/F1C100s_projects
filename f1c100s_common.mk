@@ -13,7 +13,8 @@ AS           = $(TOOLCHAIN)gcc -x assembler-with-cpp
 
 # user specific
 SRCS += \
-	$(PROJROOT)/f1c100s/arm926/src/start.S \
+	$(PROJROOT)/f1c100s/arm926/src/image.S \
+	$(PROJROOT)/f1c100s/arm926/src/vectors.S \
 	$(PROJROOT)/f1c100s/arm926/src/cache-v5.S
 
 SRCS += $(wildcard $(PROJROOT)/f1c100s/drivers/src/*.c)
@@ -40,7 +41,7 @@ MC_FLAGS = -march=armv5te -mtune=arm926ej-s -mfloat-abi=soft -marm -mno-thumb-in
 
 ASFLAGS += $(MC_FLAGS) $(DEFS)
 CFLAGS += $(MC_FLAGS) $(OPT) -fomit-frame-pointer -Wall -fverbose-asm $(DEFS)
-LDFLAGS += -nostartfiles -Xlinker --gc-sections -T$(LINK_SCRIPT) -Wl,-Map=$(BUILDDIR)/$(PROJECT_NAME).map,--cref,--no-warn-mismatch
+LDFLAGS += -nostartfiles -Xlinker --gc-sections -T$(LINK_SCRIPT) -Wl,--defsym=DRAM_SIZE=$(DRAM_SIZE),-Map=$(BUILDDIR)/$(PROJECT_NAME).map,--cref,--no-warn-mismatch
 
 #
 # makefile rules

@@ -49,7 +49,7 @@ static void spi_flash_hw_init(void) {
 
     /* Enable spi0 and do a soft reset */
     addr = SPI0_BASE;
-    val = read32(addr + SPI_GCR);
+    val  = read32(addr + SPI_GCR);
     val |= (1 << 31) | (1 << 7) | (1 << 1) | (1 << 0);
     write32(addr + SPI_GCR, val);
     while(read32(addr + SPI_GCR) & (1 << 31))
@@ -97,10 +97,10 @@ static void spi_write_txbuf(uint8_t* buf, uint32_t len) {
 }
 
 static uint32_t spi_transfer(void* txbuf, void* rxbuf, uint32_t len) {
-    uint32_t addr = SPI0_BASE;
+    uint32_t addr  = SPI0_BASE;
     uint32_t count = len;
-    uint8_t* tx = txbuf;
-    uint8_t* rx = rxbuf;
+    uint8_t* tx    = txbuf;
+    uint8_t* rx    = rxbuf;
     uint8_t val;
     uint32_t n, i;
 
@@ -197,7 +197,7 @@ uint32_t spi_flash_read_id(void) {
 
 uint8_t spi_flash_erase_full(void) {
     uint8_t flash_state = 0;
-    uint8_t cmd = 0x05;
+    uint8_t cmd         = 0x05;
 
     spi_select();
     spi_transfer(&cmd, NULL, 1);
@@ -249,7 +249,7 @@ void spi_flash_write_enable(void) {
 
 void spi_flash_wait_ready(void) {
     uint8_t flash_state = 0;
-    uint8_t cmd = 0x05;
+    uint8_t cmd         = 0x05;
 
     spi_select();
     spi_transfer(&cmd, NULL, 1);

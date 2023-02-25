@@ -5,9 +5,7 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-
-#define F1C100S_SDC0_BASE (0x01C0F000)
-#define F1C100S_SDC1_BASE (0x01C10000)
+#include "f1c100s_periph.h"
 
 typedef enum {
     SDC_GCTL  = 0x000,
@@ -315,8 +313,11 @@ typedef enum {
 } mmc_version_e;
 
 void sdc_reset(uint32_t sdc_base);
+
 uint8_t sdc_set_bus_width(uint32_t sdc_base, uint32_t width);
+
 uint8_t sdc_set_clock(uint32_t sdc_base, uint32_t clock);
+
 uint8_t sdc_transfer(uint32_t sdc_base, sdc_cmd_t* cmd, sdc_data_t* dat);
 
 #ifdef __cplusplus

@@ -1,6 +1,5 @@
 #include "system.h"
 #include <stdint.h>
-#include "mmu.h"
 #include "arm32.h"
 #include "sizes.h"
 #include "f1c100s_clock.h"
@@ -17,7 +16,6 @@ static inline void sdelay(int loops);
 void system_init(void) {
     sys_clk_init();
     sys_uart_init();
-    //intc_init();
 }
 
 static void sys_clk_init(void) {

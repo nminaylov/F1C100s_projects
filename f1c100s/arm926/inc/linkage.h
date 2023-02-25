@@ -4,8 +4,7 @@
 extern "C" {
 #endif
 
-#define ALIGN .align 0
-#define ALIGN_STR ".align 0"
+#define ALIGN .align 4
 
 #define ENTRY(name) \
     .globl name;    \
@@ -14,6 +13,7 @@ extern "C" {
 
 #define WEAK(name) \
     .weak name;    \
+    ALIGN;         \
     name:
 
 #define END(name) .size name, .- name

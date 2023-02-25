@@ -5,8 +5,7 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-
-#define F1C100S_INTC_BASE (0x01C20400)
+#include "f1c100s_periph.h"
 
 typedef enum {
     INTC_VECTOR    = 0x00,
@@ -74,9 +73,13 @@ typedef enum {
 typedef void (*intc_irq_handler)(void);
 
 void intc_init(void);
+
 void intc_enable_irq(intc_irq_vector_e irq);
+
 void intc_disable_irq(intc_irq_vector_e irq);
+
 void intc_set_priority(intc_irq_vector_e irq, uint8_t prio);
+
 void intc_set_irq_handler(intc_irq_vector_e irq, intc_irq_handler handler);
 
 #ifdef __cplusplus

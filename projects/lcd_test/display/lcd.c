@@ -33,7 +33,7 @@ void LCD_Init(uint8_t layer) {
     debe_layer_enable(layer);
 
 #if LCD_BPP == 32
-    debe_layer_set_mode(layer, DEBE_MODE_32BPP_ARGB_8888);
+    debe_layer_set_mode(layer, DEBE_MODE_32BPP_RGB_888);
 #elif LCD_BPP == 16
     debe_layer_set_mode(layer, DEBE_MODE_16BPP_RGB_565);
 #elif LCD_BPP == 8

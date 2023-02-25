@@ -204,7 +204,7 @@ static uint8_t sdc_update_clock(uint32_t sdc_base) {
 }
 
 uint8_t sdc_set_clock(uint32_t sdc_base, uint32_t clock) {
-    if(sdc_base == F1C100S_SDC0_BASE)
+    if(sdc_base == SDC0_BASE)
         clk_sdc_config(CCU_SDMMC0_CLK, clock);
     else
         clk_sdc_config(CCU_SDMMC1_CLK, clock);

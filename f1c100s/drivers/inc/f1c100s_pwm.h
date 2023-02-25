@@ -5,8 +5,7 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-
-#define F1C100S_PWM_BASE (0x01C21000)
+#include "f1c100s_periph.h"
 
 typedef enum {
     PWM0 = 0,
@@ -42,9 +41,11 @@ typedef enum {
 void pwm_init(uint8_t ch, pwm_mode_e mode, uint8_t active_level, pwm_prescaller_e psc);
 
 void pwm_set_period(uint8_t ch, uint16_t val);
+
 void pwm_set_pulse_len(uint8_t ch, uint16_t val);
 
 void pwm_enable(uint8_t ch);
+
 void pwm_disable(uint8_t ch);
 
 void pwm_pulse_start(uint8_t ch);

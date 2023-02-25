@@ -5,8 +5,7 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-
-#define F1C100S_TP_BASE (0x01C24800)
+#include "f1c100s_periph.h"
 
 typedef enum {
     TP_CTRL0         = 0x00,
