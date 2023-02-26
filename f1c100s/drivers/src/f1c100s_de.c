@@ -43,6 +43,8 @@ static de_params_t de;
  *    debe_cursor_set_size
  *    debe_cursor_write_pattern
  *    debe_cursor_write_palette
+ * 
+ *     tcon irq
  *
  */
 /************** DEBE Layers ***************/
@@ -65,8 +67,7 @@ void debe_layer_init(uint8_t layer) {
     de.layer[layer].height = de.height;
 
     write32(DEBE_BASE + DEBE_LAY_POS + layer * 4, 0);
-    write32(
-        DEBE_BASE + DEBE_LAY_SIZE + layer * 4, ((de.height - 1) << 16) | (de.width - 1));
+    write32(DEBE_BASE + DEBE_LAY_SIZE + layer * 4, ((de.height - 1) << 16) | (de.width - 1));
 
     debe_update_linewidth(layer);
 }
@@ -230,10 +231,8 @@ void de_tv_init(tve_mode_e mode, uint16_t hor_lines) {
 
     for(uint8_t i = 0; i < 4; i++) {
         write32(DEBE_BASE + DEBE_COLOR_COEF + i * 4 + 0 * 4, csc_tab[12 * 3 + i] << 16);
-        write32(
-            DEBE_BASE + DEBE_COLOR_COEF + i * 4 + 4 * 4, csc_tab[12 * 3 + i + 4] << 16);
-        write32(
-            DEBE_BASE + DEBE_COLOR_COEF + i * 4 + 8 * 4, csc_tab[12 * 3 + i + 8] << 16);
+        write32(DEBE_BASE + DEBE_COLOR_COEF + i * 4 + 4 * 4, csc_tab[12 * 3 + i + 4] << 16);
+        write32(DEBE_BASE + DEBE_COLOR_COEF + i * 4 + 8 * 4, csc_tab[12 * 3 + i + 8] << 16);
     }
 
     //    write32(DEBE_BASE + DEBE_COLOR_COEF + 0*4, 0x024C0000);
@@ -296,8 +295,7 @@ void defe_init_spl_422(uint16_t in_w, uint16_t in_h, uint8_t* buf_y, uint8_t* bu
     write32(DEFE_BASE + DEFE_STRIDE0, in_w);
     write32(DEFE_BASE + DEFE_STRIDE1, in_w);
 
-    write32(
-        DEFE_BASE + DEFE_IN_SIZE, (in_w - 1) | ((in_h - 1) << 16)); // Out size = In size
+    write32(DEFE_BASE + DEFE_IN_SIZE, (in_w - 1) | ((in_h - 1) << 16)); // Out size = In size
     write32(DEFE_BASE + DEFE_OUT_SIZE, (in_w - 1) | ((in_h - 1) << 16));
     write32(DEFE_BASE + DEFE_H_FACT, (1 << 16)); // H scale: 1
     if(de.mode == DE_LCD)

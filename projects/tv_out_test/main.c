@@ -33,42 +33,42 @@ int main(void) {
 }
 
 static void draw_test_screen(void) {
-    LCD_Init(0);
+    lcd_init(0);
 
-    LCD_Fill(50, 40, 100, 100, RED);
-    LCD_Fill(50, 140, 100, 100, GREEN);
-    LCD_Fill(50, 240, 100, 100, BLUE);
-    LCD_Fill(50, 340, 100, 100, WHITE);
+    lcd_fill(50, 40, 100, 100, COLOR_RED);
+    lcd_fill(50, 140, 100, 100, COLOR_GREEN);
+    lcd_fill(50, 240, 100, 100, COLOR_BLUE);
+    lcd_fill(50, 340, 100, 100, COLOR_WHITE);
 
     for(uint8_t i = 0; i < 255; i++) {
-        LCD_Fill(200 + i, 50, 1, 40, (i << 16));
-        LCD_Fill(200 + i, 100, 1, 40, (i << 8));
-        LCD_Fill(200 + i, 150, 1, 40, (i));
-        LCD_Fill(200 + i, 200, 1, 40, (i << 16) | (i << 8) | (i));
+        lcd_fill(200 + i, 50, 1, 40, (i << 16));
+        lcd_fill(200 + i, 100, 1, 40, (i << 8));
+        lcd_fill(200 + i, 150, 1, 40, (i));
+        lcd_fill(200 + i, 200, 1, 40, (i << 16) | (i << 8) | (i));
     }
 
     for(uint8_t i = 0; i < 20; i++) {
         if(i % 2)
-            LCD_Fill(500 + i, 200, 1, 20, WHITE);
+            lcd_fill(500 + i, 200, 1, 20, COLOR_WHITE);
         else
-            LCD_Fill(500 + i, 200, 1, 20, BLACK);
+            lcd_fill(500 + i, 200, 1, 20, COLOR_BLACK);
     }
 
     for(uint8_t i = 0; i < 20; i++) {
         if(i % 2)
-            LCD_Fill(500, 225 + i, 20, 1, WHITE);
+            lcd_fill(500, 225 + i, 20, 1, COLOR_WHITE);
         else
-            LCD_Fill(500, 225 + i, 20, 1, BLACK);
+            lcd_fill(500, 225 + i, 20, 1, COLOR_BLACK);
     }
 
-    LCD_SetFont(&t_12x24_full);
-    LCD_SetBGColor(BLACK);
-    LCD_SetTextColor(WHITE);
-    LCD_SetTextPos(200, 250);
-    LCD_printf("Hello, world!\n");
+    lcd_set_font(&t_12x24_full);
+    lcd_set_bg_color(COLOR_BLACK);
+    lcd_set_text_color(COLOR_WHITE);
+    lcd_set_text_pos(200, 250);
+    lcd_printf("Hello, world!\n");
     for(uint16_t ch = '!'; ch <= 0xFF; ch++) {
-        LCD_putchar(ch & 0xFF);
-        if(ch % 32 == 0) LCD_putchar('\n');
+        lcd_putchar(ch & 0xFF);
+        if(ch % 32 == 0) lcd_putchar('\n');
     }
 }
 
@@ -145,7 +145,7 @@ static uint8_t dvd_logo_image[1024] = {
     0x00, 0x00, 0x00, 0x00};
 
 static void draw_logo(void) {
-    debe_layer_set_mode(1, DEBE_MODE__1BPP_PALETTE);
+    debe_layer_set_mode(1, DEBE_MODE_1BPP_PALETTE);
     debe_layer_set_pos(1, 0, 0);
     debe_layer_set_size(1, 128, 64);
     srand(0xFFFF);
@@ -154,19 +154,19 @@ static void draw_logo(void) {
     debe_layer_set_addr(1, dvd_logo_image);
     debe_layer_enable(1);
 
-    set32(F1C100S_TCON_BASE + TCON_INT0, (1 << 30)); // Vblank interrupt enable
+    set32(TCON_BASE + TCON_INT0, (1 << 30)); // Vblank interrupt enable
     intc_set_irq_handler(IRQ_TCON, update_logo);
     intc_enable_irq(IRQ_TCON);
 }
 
 static void update_logo(void) {
-    static int8_t step = 3;
+    static int8_t step   = 3;
     static int16_t pos_x = 0;
     static int16_t pos_y = 0;
-    static int8_t dir_x = 3;
-    static int8_t dir_y = 3;
+    static int8_t dir_x  = 3;
+    static int8_t dir_y  = 3;
 
-    clear32(F1C100S_TCON_BASE + TCON_INT0, (0xF << 12)); // Vblank interrupt clear
+    clear32(TCON_BASE + TCON_INT0, (0xF << 12)); // Vblank interrupt clear
 
     pos_x += dir_x;
     pos_y += dir_y;

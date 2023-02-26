@@ -14,7 +14,7 @@ extern unsigned char __heap_end;
 // Pointer to current position in heap
 static void* _cur_brk = NULL;
 
-extern void _putchar(char c);
+extern void putchar_(char c);
 
 int _close(int file) {
     return -1;
@@ -58,7 +58,7 @@ caddr_t _sbrk_r(struct _reent* r, int incr) {
         char* msg = "HEAP FULL!\r\n";
 
         for(i = 0; i < strlen(msg); i++) {
-            _putchar(msg[i]);
+            putchar_(msg[i]);
         }
 
         errno = ENOMEM;
@@ -77,9 +77,9 @@ int _read(int file, char* ptr, int len) {
 int _write(int file, char* ptr, int len) {
     for(uint32_t i = 0; i < len; i++) {
         if(ptr[i] == '\n') {
-            _putchar('\r');
+            putchar_('\r');
         }
-        _putchar(ptr[i]);
+        putchar_(ptr[i]);
     }
     return len;
 }

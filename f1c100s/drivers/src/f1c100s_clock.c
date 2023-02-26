@@ -254,8 +254,7 @@ void clk_ahb_config(clk_source_ahb_e src, uint8_t prediv, uint8_t div) {
 
     uint32_t val = read32(CCU_BASE + CCU_AHB_APB_CFG) & ~((0x3 << 12) | (0xF << 4));
     write32(
-        CCU_BASE + CCU_AHB_APB_CFG,
-        val | (src << 12) | ((prediv - 1) << 6) | ((div - 1) << 4));
+        CCU_BASE + CCU_AHB_APB_CFG, val | (src << 12) | ((prediv - 1) << 6) | ((div - 1) << 4));
 }
 
 uint32_t clk_ahb_get_freq(void) {

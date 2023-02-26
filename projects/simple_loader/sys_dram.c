@@ -54,8 +54,8 @@ static void dram_delay(int ms) {
 static int dram_initial(void) {
     unsigned int time = 0xffffff;
 
-    write32(F1C100S_DRAM_BASE + DRAM_SCTLR, read32(F1C100S_DRAM_BASE + DRAM_SCTLR) | 0x1);
-    while((read32(F1C100S_DRAM_BASE + DRAM_SCTLR) & 0x1) && time--) {
+    write32(DRAMC_BASE + DRAM_SCTLR, read32(DRAMC_BASE + DRAM_SCTLR) | 0x1);
+    while((read32(DRAMC_BASE + DRAM_SCTLR) & 0x1) && time--) {
         if(time == 0) return 0;
     }
     return 1;
@@ -64,8 +64,8 @@ static int dram_initial(void) {
 static int dram_delay_scan(void) {
     unsigned int time = 0xffffff;
 
-    write32(F1C100S_DRAM_BASE + DRAM_DDLYR, read32(F1C100S_DRAM_BASE + DRAM_DDLYR) | 0x1);
-    while((read32(F1C100S_DRAM_BASE + DRAM_DDLYR) & 0x1) && time--) {
+    write32(DRAMC_BASE + DRAM_DDLYR, read32(DRAMC_BASE + DRAM_DDLYR) | 0x1);
+    while((read32(DRAMC_BASE + DRAM_DDLYR) & 0x1) && time--) {
         if(time == 0) return 0;
     }
     return 1;
@@ -76,7 +76,7 @@ static void dram_set_autofresh_cycle(uint32_t clk) {
     uint32_t row  = 0;
     uint32_t temp = 0;
 
-    row = read32(F1C100S_DRAM_BASE + DRAM_SCONR);
+    row = read32(DRAMC_BASE + DRAM_SCONR);
     row &= 0x1e0;
     row >>= 0x5;
 
@@ -101,7 +101,7 @@ static void dram_set_autofresh_cycle(uint32_t clk) {
             val = (clk * 499) >> 5;
         }
     }
-    write32(F1C100S_DRAM_BASE + DRAM_SREFR, val);
+    write32(DRAMC_BASE + DRAM_SREFR, val);
 }
 
 static int dram_para_setup(struct dram_para_t* para) {
@@ -113,8 +113,8 @@ static int dram_para_setup(struct dram_para_t* para) {
           ((para->sdr_ddr ? (para->bwidth >> 4) : (para->bwidth >> 5)) << 13) |
           (para->access_mode << 15) | (para->sdr_ddr << 16);
 
-    write32(F1C100S_DRAM_BASE + DRAM_SCONR, val);
-    write32(F1C100S_DRAM_BASE + DRAM_SCTLR, read32(F1C100S_DRAM_BASE + DRAM_SCTLR) | (0x1 << 19));
+    write32(DRAMC_BASE + DRAM_SCONR, val);
+    write32(DRAMC_BASE + DRAM_SCTLR, read32(DRAMC_BASE + DRAM_SCTLR) | (0x1 << 19));
     return dram_initial();
 }
 
@@ -127,13 +127,13 @@ static uint32_t dram_check_delay(uint32_t bwidth) {
     dsize = ((bwidth == 16) ? 4 : 2);
     for(i = 0; i < dsize; i++) {
         if(i == 0)
-            dflag = read32(F1C100S_DRAM_BASE + DRAM_DRPTR0);
+            dflag = read32(DRAMC_BASE + DRAM_DRPTR0);
         else if(i == 1)
-            dflag = read32(F1C100S_DRAM_BASE + DRAM_DRPTR1);
+            dflag = read32(DRAMC_BASE + DRAM_DRPTR1);
         else if(i == 2)
-            dflag = read32(F1C100S_DRAM_BASE + DRAM_DRPTR2);
+            dflag = read32(DRAMC_BASE + DRAM_DRPTR2);
         else if(i == 3)
-            dflag = read32(F1C100S_DRAM_BASE + DRAM_DRPTR3);
+            dflag = read32(DRAMC_BASE + DRAM_DRPTR3);
 
         for(j = 0; j < 32; j++) {
             if(dflag & 0x1) num++;
@@ -160,8 +160,7 @@ static uint32_t sdr_readpipe_select(void) {
     uint32_t i     = 0;
     for(i = 0; i < 8; i++) {
         write32(
-            F1C100S_DRAM_BASE + DRAM_SCTLR,
-            (read32(F1C100S_DRAM_BASE + DRAM_SCTLR) & (~(0x7 << 6))) | (i << 6));
+            DRAMC_BASE + DRAM_SCTLR, (read32(DRAMC_BASE + DRAM_SCTLR) & (~(0x7 << 6))) | (i << 6));
         if(sdr_readpipe_scan()) {
             value = i;
             return value;
@@ -176,13 +175,13 @@ static uint32_t dram_check_type(struct dram_para_t* para) {
     uint32_t i;
 
     for(i = 0; i < 8; i++) {
-        val = read32(F1C100S_DRAM_BASE + DRAM_SCTLR);
+        val = read32(DRAMC_BASE + DRAM_SCTLR);
         val &= ~(0x7 << 6);
         val |= (i << 6);
-        write32(F1C100S_DRAM_BASE + DRAM_SCTLR, val);
+        write32(DRAMC_BASE + DRAM_SCTLR, val);
 
         dram_delay_scan();
-        if(read32(F1C100S_DRAM_BASE + DRAM_DDLYR) & 0x30) times++;
+        if(read32(DRAMC_BASE + DRAM_DDLYR) & 0x30) times++;
     }
 
     if(times == 8) {
@@ -201,14 +200,14 @@ static uint32_t dram_scan_readpipe(struct dram_para_t* para) {
 
     if(para->sdr_ddr == DRAM_TYPE_DDR) {
         for(i = 0; i < 8; i++) {
-            val = read32(F1C100S_DRAM_BASE + DRAM_SCTLR);
+            val = read32(DRAMC_BASE + DRAM_SCTLR);
             val &= ~(0x7 << 6);
             val |= (i << 6);
-            write32(F1C100S_DRAM_BASE + DRAM_SCTLR, val);
+            write32(DRAMC_BASE + DRAM_SCTLR, val);
             dram_delay_scan();
             readpipe[i] = 0;
-            if((((read32(F1C100S_DRAM_BASE + DRAM_DDLYR) >> 4) & 0x3) == 0x0) &&
-               (((read32(F1C100S_DRAM_BASE + DRAM_DDLYR) >> 4) & 0x1) == 0x0)) {
+            if((((read32(DRAMC_BASE + DRAM_DDLYR) >> 4) & 0x3) == 0x0) &&
+               (((read32(DRAMC_BASE + DRAM_DDLYR) >> 4) & 0x1) == 0x0)) {
                 readpipe[i] = dram_check_delay(para->bwidth);
             }
             if(rp_val < readpipe[i]) {
@@ -216,21 +215,21 @@ static uint32_t dram_scan_readpipe(struct dram_para_t* para) {
                 rp_best = i;
             }
         }
-        val = read32(F1C100S_DRAM_BASE + DRAM_SCTLR);
+        val = read32(DRAMC_BASE + DRAM_SCTLR);
         val &= ~(0x7 << 6);
         val |= (rp_best << 6);
-        write32(F1C100S_DRAM_BASE + DRAM_SCTLR, val);
+        write32(DRAMC_BASE + DRAM_SCTLR, val);
         dram_delay_scan();
     } else {
-        val = read32(F1C100S_DRAM_BASE + DRAM_SCONR);
+        val = read32(DRAMC_BASE + DRAM_SCONR);
         val &= (~(0x1 << 16));
         val &= (~(0x3 << 13));
-        write32(F1C100S_DRAM_BASE + DRAM_SCONR, val);
+        write32(DRAMC_BASE + DRAM_SCONR, val);
         rp_best = sdr_readpipe_select();
-        val     = read32(F1C100S_DRAM_BASE + DRAM_SCTLR);
+        val     = read32(DRAMC_BASE + DRAM_SCTLR);
         val &= ~(0x7 << 6);
         val |= (rp_best << 6);
-        write32(F1C100S_DRAM_BASE + DRAM_SCTLR, val);
+        write32(DRAMC_BASE + DRAM_SCTLR, val);
     }
     return 0;
 }
@@ -305,16 +304,16 @@ static int dram_init(struct dram_para_t* para) {
     uint32_t val = 0;
     uint32_t i;
 
-    write32(0x01c20800 + 0x24, read32(0x01c20800 + 0x24) | (0x7 << 12));
+    write32(GPIO_BASE + 0x24, read32(GPIO_BASE + 0x24) | (0x7 << 12));
     dram_delay(5);
     if(((para->cas) >> 3) & 0x1) {
-        write32(0x01c20800 + 0x2c4, read32(0x01c20800 + 0x2c4) | (0x1 << 23) | (0x20 << 17));
+        write32(GPIO_BASE + 0x2c4, read32(GPIO_BASE + 0x2c4) | (0x1 << 23) | (0x20 << 17));
     }
     if((para->clk >= 144) && (para->clk <= 180)) {
-        write32(0x01c20800 + 0x2c0, 0xaaa);
+        write32(GPIO_BASE + 0x2c0, 0xaaa);
     }
     if(para->clk >= 180) {
-        write32(0x01c20800 + 0x2c0, 0xfff);
+        write32(GPIO_BASE + 0x2c0, 0xfff);
     }
     if((para->clk) <= 96) {
         val = (0x1 << 0) | (0x0 << 4) | (((para->clk * 2) / 12 - 1) << 8) | (0x1u << 31);
@@ -323,51 +322,43 @@ static int dram_init(struct dram_para_t* para) {
     }
 
     if(para->cas & (0x1 << 4)) {
-        write32(F1C100S_CCU_BASE + CCU_PLL_DDR0_PAT, 0xd1303333);
+        write32(CCU_BASE + CCU_PLL_DDR0_PAT, 0xd1303333);
     } else if(para->cas & (0x1 << 5)) {
-        write32(F1C100S_CCU_BASE + CCU_PLL_DDR0_PAT, 0xcce06666);
+        write32(CCU_BASE + CCU_PLL_DDR0_PAT, 0xcce06666);
     } else if(para->cas & (0x1 << 6)) {
-        write32(F1C100S_CCU_BASE + CCU_PLL_DDR0_PAT, 0xc8909999);
+        write32(CCU_BASE + CCU_PLL_DDR0_PAT, 0xc8909999);
     } else if(para->cas & (0x1 << 7)) {
-        write32(F1C100S_CCU_BASE + CCU_PLL_DDR0_PAT, 0xc440cccc);
+        write32(CCU_BASE + CCU_PLL_DDR0_PAT, 0xc440cccc);
     }
     if(para->cas & (0xf << 4)) {
         val |= 0x1 << 24;
     }
-    write32(F1C100S_CCU_BASE + CCU_PLL_DDR_CTRL, val);
-    write32(
-        F1C100S_CCU_BASE + CCU_PLL_DDR_CTRL,
-        read32(F1C100S_CCU_BASE + CCU_PLL_DDR_CTRL) | (0x1 << 20));
-    while((read32(F1C100S_CCU_BASE + CCU_PLL_DDR_CTRL) & (1 << 28)) == 0)
+    write32(CCU_BASE + CCU_PLL_DDR_CTRL, val);
+    write32(CCU_BASE + CCU_PLL_DDR_CTRL, read32(CCU_BASE + CCU_PLL_DDR_CTRL) | (0x1 << 20));
+    while((read32(CCU_BASE + CCU_PLL_DDR_CTRL) & (1 << 28)) == 0)
         ;
     dram_delay(5);
-    write32(
-        F1C100S_CCU_BASE + CCU_BUS_CLK_GATE0,
-        read32(F1C100S_CCU_BASE + CCU_BUS_CLK_GATE0) | (0x1 << 14));
-    write32(
-        F1C100S_CCU_BASE + CCU_BUS_SOFT_RST0,
-        read32(F1C100S_CCU_BASE + CCU_BUS_SOFT_RST0) & ~(0x1 << 14));
+    write32(CCU_BASE + CCU_BUS_CLK_GATE0, read32(CCU_BASE + CCU_BUS_CLK_GATE0) | (0x1 << 14));
+    write32(CCU_BASE + CCU_BUS_SOFT_RST0, read32(CCU_BASE + CCU_BUS_SOFT_RST0) & ~(0x1 << 14));
     for(i = 0; i < 10; i++) continue;
-    write32(
-        F1C100S_CCU_BASE + CCU_BUS_SOFT_RST0,
-        read32(F1C100S_CCU_BASE + CCU_BUS_SOFT_RST0) | (0x1 << 14));
+    write32(CCU_BASE + CCU_BUS_SOFT_RST0, read32(CCU_BASE + CCU_BUS_SOFT_RST0) | (0x1 << 14));
 
-    val = read32(0x01c20800 + 0x2c4);
+    val = read32(GPIO_BASE + 0x2c4);
     (para->sdr_ddr == DRAM_TYPE_DDR) ? (val |= (0x1 << 16)) : (val &= ~(0x1 << 16));
-    write32(0x01c20800 + 0x2c4, val);
+    write32(GPIO_BASE + 0x2c4, val);
 
     val = (SDR_T_CAS << 0) | (SDR_T_RAS << 3) | (SDR_T_RCD << 7) | (SDR_T_RP << 10) |
           (SDR_T_WR << 13) | (SDR_T_RFC << 15) | (SDR_T_XSR << 19) | (SDR_T_RC << 28);
-    write32(F1C100S_DRAM_BASE + DRAM_STMG0R, val);
+    write32(DRAMC_BASE + DRAM_STMG0R, val);
     val = (SDR_T_INIT << 0) | (SDR_T_INIT_REF << 16) | (SDR_T_WTR << 20) | (SDR_T_RRD << 22) |
           (SDR_T_XP << 25);
-    write32(F1C100S_DRAM_BASE + DRAM_STMG1R, val);
+    write32(DRAMC_BASE + DRAM_STMG1R, val);
     dram_para_setup(para);
     dram_check_type(para);
 
-    val = read32(0x01c20800 + 0x2c4);
+    val = read32(GPIO_BASE + 0x2c4);
     (para->sdr_ddr == DRAM_TYPE_DDR) ? (val |= (0x1 << 16)) : (val &= ~(0x1 << 16));
-    write32(0x01c20800 + 0x2c4, val);
+    write32(GPIO_BASE + 0x2c4, val);
 
     dram_set_autofresh_cycle(para->clk);
     dram_scan_readpipe(para);

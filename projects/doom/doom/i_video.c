@@ -156,7 +156,7 @@ void I_InitGraphics (void)
 	debe_layer_set_size(1, screen_mode->width, screen_mode->height);
 	debe_layer_set_pos(1, (800-screen_mode->width)/2, (480-screen_mode->height)/2);
 	debe_layer_set_addr(1, fb_out);
-	debe_layer_set_mode(1, DEBE_MODE__8BPP_PALETTE);
+	debe_layer_set_mode(1, DEBE_MODE_8BPP_PALETTE);
 	debe_layer_enable(1);
 
 	screenvisible = true;

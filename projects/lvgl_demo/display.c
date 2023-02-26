@@ -6,7 +6,7 @@
 #include "f1c100s_gpio.h"
 #include "f1c100s_pwm.h"
 #include "lvgl/lvgl.h"
-#include "cache.h"
+#include "armv5_cache.h"
 
 #define LCD_H_RES LV_HOR_RES_MAX
 #define LCD_V_RES LV_VER_RES_MAX

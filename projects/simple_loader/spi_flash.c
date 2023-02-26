@@ -5,8 +5,6 @@
 #include "f1c100s_gpio.h"
 #include "f1c100s_clock.h"
 
-#define SPI0_BASE 0x01C05000
-
 enum {
     SPI_GCR = 0x04,
     SPI_TCR = 0x08,

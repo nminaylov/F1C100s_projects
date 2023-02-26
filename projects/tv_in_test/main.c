@@ -43,34 +43,36 @@ int main(void) {
 
     tvd_enable();
 
-    LCD_Init(1); // Layer 1 - overlay
-    LCD_SetBGColor(0x80000000);
-    LCD_SetTextPos(200, 0);
-    LCD_printf("NTSC");
+    lcd_init(1); // Layer 1 - overlay
+    lcd_fill(0, 0, DISPLAY_W, DISPLAY_H, COLOR_TRANSPARENT);
+    lcd_set_bg_color(0x80000000);
+    lcd_set_text_color(COLOR_WHITE);
+    lcd_set_text_pos(200, 0);
+    lcd_printf("NTSC");
 
-    //    LCD_Fill(700, 460, 10, 10, 0xFFFF0000);
+    //    lcd_fill(700, 460, 10, 10, 0xFFFF0000);
 
     //    for (uint8_t i = 0; i < 255; i++)
     //    {
-    //        LCD_Fill(200+i, 50, 1, 40, (i << 24)|(0xFF0000));
-    //        LCD_Fill(200+i, 100, 1, 40, (i << 24)|(0x00FF00));
-    //        LCD_Fill(200+i, 150, 1, 40, (i << 24)|(0x0000FF));
-    //        LCD_Fill(200+i, 200, 1, 40, (i << 24)|(0xFFFFFF));
-    //        LCD_Fill(200+i, 250, 1, 40, (i << 24)|(0x000000));
+    //        lcd_fill(200+i, 50, 1, 40, (i << 24)|(0xFF0000));
+    //        lcd_fill(200+i, 100, 1, 40, (i << 24)|(0x00FF00));
+    //        lcd_fill(200+i, 150, 1, 40, (i << 24)|(0x0000FF));
+    //        lcd_fill(200+i, 200, 1, 40, (i << 24)|(0xFFFFFF));
+    //        lcd_fill(200+i, 250, 1, 40, (i << 24)|(0x000000));
     //    }
 
     while(1) {
-        LCD_SetTextPos(0, 0);
-        uint32_t val = read32(F1C100S_TVD_BASE + TVD_STATE_0);
-        LCD_printf("%08X\n", val);
-        val = read32(F1C100S_TVD_BASE + TVD_STATE_1);
-        LCD_printf("%08X\n", val);
-        val = read32(F1C100S_TVD_BASE + TVD_STATE_2);
-        LCD_printf("%08X\n", val);
-        val = read32(F1C100S_TVD_BASE + TVD_STATE_3);
-        LCD_printf("%08X\n", val);
-        val = read32(F1C100S_TVD_BASE + TVD_STATE_4);
-        LCD_printf("%08X\n", val);
+        lcd_set_text_pos(0, 0);
+        uint32_t val = read32(TVD_BASE + TVD_STATE_0);
+        lcd_printf("%08lX\n", val);
+        val = read32(TVD_BASE + TVD_STATE_1);
+        lcd_printf("%08lX\n", val);
+        val = read32(TVD_BASE + TVD_STATE_2);
+        lcd_printf("%08lX\n", val);
+        val = read32(TVD_BASE + TVD_STATE_3);
+        lcd_printf("%08lX\n", val);
+        val = read32(TVD_BASE + TVD_STATE_4);
+        lcd_printf("%08lX\n", val);
     }
     return 0;
 }

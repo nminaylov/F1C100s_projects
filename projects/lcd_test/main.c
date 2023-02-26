@@ -15,39 +15,39 @@ int main(void) {
 
     display_init();
     display_set_bl(100);
-    LCD_Init(0);
-    
-    LCD_printf("Hello, world!");
+    lcd_init(0);
 
-    LCD_Fill(50, 40, 100, 100, RED);
-    LCD_Fill(50, 140, 100, 100, GREEN);
-    LCD_Fill(50, 240, 100, 100, BLUE);
-    LCD_Fill(50, 340, 100, 100, WHITE);
+    lcd_printf("Hello, world!");
 
-    LCD_Fill(196, 46, 160, 58, BLUE);
-    LCD_SetBGColor(BLUE);
-    LCD_SetTextColor(WHITE);
-    LCD_SetTextPos(200, 50);
+    lcd_fill(50, 40, 100, 100, COLOR_RED);
+    lcd_fill(50, 140, 100, 100, COLOR_GREEN);
+    lcd_fill(50, 240, 100, 100, COLOR_BLUE);
+    lcd_fill(50, 340, 100, 100, COLOR_WHITE);
 
-    LCD_SetFont(&clock_digits);
-    LCD_printf("%02d", 12);
+    lcd_fill(196, 46, 160, 58, COLOR_BLUE);
+    lcd_set_bg_color(COLOR_BLUE);
+    lcd_set_text_color(COLOR_WHITE);
+    lcd_set_text_pos(200, 50);
 
-    LCD_SetFont(&clock_dots);
+    lcd_set_font(&clock_digits);
+    lcd_printf("%02d", 12);
+
+    lcd_set_font(&clock_dots);
     //    if (time.sec%2)
-    LCD_putchar(1);
+    lcd_putchar(1);
     //    else
-    //        LCD_putchar(0);
+    //        lcd_putchar(0);
 
-    LCD_SetFont(&clock_digits);
-    LCD_printf("%02d", 34);
+    lcd_set_font(&clock_digits);
+    lcd_printf("%02d", 34);
 
-    LCD_SetFont(&t_12x24_full);
-    LCD_SetBGColor(BLACK);
-    LCD_SetTextColor(WHITE);
-    LCD_SetTextPos(200, 200);
+    lcd_set_font(&t_12x24_full);
+    lcd_set_bg_color(COLOR_BLACK);
+    lcd_set_text_color(COLOR_WHITE);
+    lcd_set_text_pos(200, 200);
     for(uint16_t ch = 0; ch <= 0xFF; ch++) {
-        LCD_putchar(ch & 0xFF);
-        if(ch % 32 == 0) LCD_putchar('\n');
+        lcd_putchar(ch & 0xFF);
+        if(ch % 32 == 0) lcd_putchar('\n');
     }
 
     while(1) {

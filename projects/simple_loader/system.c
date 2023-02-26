@@ -38,7 +38,7 @@ static void sys_clk_init(void) {
         ; // Wait for PLL to lock
 
     // Configure bus clocks
-    write32(F1C100S_CCU_BASE + CCU_AHB_APB_CFG, 0x00003180);
+    //write32(CCU_BASE + CCU_AHB_APB_CFG, 0x00003180); // TODO:
     clk_hclk_config(1); // HCLK = CLK_CPU
     clk_apb_config(CLK_APB_DIV_2); // APB = AHB/2 = 100M
     clk_ahb_config(CLK_AHB_SRC_PLL_PERIPH_PREDIV, 3, 1); // AHB = PLL_PERIPH/3/1 = 200M
@@ -57,7 +57,7 @@ static void sys_uart_init(void) {
     uart_init(UART0, 115200); // Configure UART0 to 115200-8-n-1
 }
 
-void _putchar(char c) {
+void putchar_(char c) {
     while(!(uart_get_status(UART0) & UART_LSR_THRE))
         ;
     uart_tx(UART0, c);

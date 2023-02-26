@@ -42,7 +42,7 @@ DSTATUS disk_initialize(BYTE pdrv) {
 
         gpio_init(GPIOF, PIN1 | PIN2 | PIN3, GPIO_MODE_AF2, GPIO_PULL_NONE, GPIO_DRV_3);
 
-        sdcard.sdc_base = F1C100S_SDC0_BASE;
+        sdcard.sdc_base = SDC0_BASE;
         sdcard.voltage = MMC_VDD_27_36;
         sdcard.width = MMC_BUS_WIDTH_1;
         sdcard.clock = 50000000;

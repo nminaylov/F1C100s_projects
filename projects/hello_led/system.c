@@ -1,6 +1,6 @@
 #include "system.h"
 #include <stdint.h>
-#include "mmu.h"
+#include "armv5_mmu.h"
 #include "arm32.h"
 #include "sizes.h"
 #include "f1c100s_clock.h"
@@ -64,7 +64,7 @@ static void sys_uart_init(void) {
     uart_init(UART0, 115200); // Configure UART0 to 115200-8-n-1
 }
 
-void _putchar(char c) {
+void putchar_(char c) {
     while(!(uart_get_status(UART0) & UART_LSR_THRE))
         ;
     uart_tx(UART0, c);
