@@ -16,7 +16,7 @@ INCLUDES += -I.
 INCLUDES += -Ilvgl
 
 # Define optimisation level here
-OPT = -Os
+OPT = -O1
 
 # include sub makefiles
 LVGL_DIR		= .

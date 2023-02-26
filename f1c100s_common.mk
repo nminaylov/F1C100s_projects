@@ -10,6 +10,10 @@ CC           = $(TOOLCHAIN)gcc
 CP           = $(TOOLCHAIN)objcopy
 SZ           = $(TOOLCHAIN)size
 AS           = $(TOOLCHAIN)gcc -x assembler-with-cpp
+OPENOCD 	 = openocd
+
+OPENOCD_ADAPTER = interface/ftdi/digilent-hs1.cfg
+OPENOCD_OPTS = -f $(OPENOCD_ADAPTER) -f $(PROJROOT)/allwinner_f1c100s.cfg -c "init"
 
 # user specific
 SRCS += \
@@ -64,3 +68,27 @@ $(BUILDDIR)/%.o: %.S
 
 clean:
 	rm -rf $(BUILDDIR)/
+
+# Start openocd
+openocd_start:
+	$(OPENOCD) $(OPENOCD_OPTS)
+
+# Perform a reset using watchdog
+reset:
+	$(OPENOCD) $(OPENOCD_OPTS) -c "halt" -c "mww 0x01C20CB4 0x1" -c "mww 0x01C20CB8 0x1" -c "resume" -c "sleep 3000" -c "exit"
+
+# Load and execute code in SRAM
+load_sram: $(BIN)
+	$(OPENOCD) $(OPENOCD_OPTS) -c "halt" -c "load_image $(BIN) 0x00000000" -c "reg pc 0x00000000" -c "resume" -c "exit"
+
+# Load and execute code in DRAM (DRAM should be initialized first!)
+load_dram: $(BIN)
+	$(OPENOCD) $(OPENOCD_OPTS) -c "halt" -c "load_image $(BIN) 0x80000000" -c "reg pc 0x80000000" -c "resume" -c "exit"
+
+# Load and execute DRAM initialization code (should be built first)
+dram_init: 
+	$(OPENOCD) $(OPENOCD_OPTS) -c "halt" -c "load_image $(PROJROOT)/projects/dram_init/build/dram_init.bin 0x00000000" -c "reg pc 0x00000000" -c "resume" -c "exit"
+
+# Reset SOC, initialize DRAM and load code
+# Works only if there is no bootable code in spi flash
+load: reset dram_init load_dram

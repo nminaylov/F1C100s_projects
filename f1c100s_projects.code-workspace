@@ -27,11 +27,15 @@
 		{
 			"path": "projects/tv_out_test"
 		},
+		{
+			"path": "projects/dram_init"
+		},
 		// Add your project here
 	],
 	"settings": {
         "files.exclude": {
             "projects": true,
 		},
+		"cortex-debug.variableUseNaturalFormat": false,
     },
 }
