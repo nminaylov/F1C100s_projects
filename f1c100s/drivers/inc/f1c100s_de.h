@@ -5,6 +5,7 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#include <stdbool.h>
 #include "f1c100s_tve.h"
 #include "f1c100s_periph.h"
 
@@ -116,7 +117,19 @@ typedef enum {
     DE_LCD_PARALLEL_RGB,
     DE_LCD_SERIAL_RGB,
     DE_LCD_SERIAL_YUV,
+    DE_LCD_CPU_8080,
 } de_lcd_bus_mode_e;
+
+typedef enum {
+    DE_8080_MODE_18BIT_256K = 0,
+    DE_8080_MODE_16BIT_0    = 1,
+    DE_8080_MODE_16BIT_1    = 2,
+    DE_8080_MODE_16BIT_2    = 3,
+    DE_8080_MODE_16BIT_3    = 4,
+    DE_8080_MODE_9BIT       = 5,
+    DE_8080_MODE_8BIT_256K  = 6,
+    DE_8080_MODE_8BIT_65K   = 7,
+} de_lcd_8080_bus_e;
 
 typedef enum {
     DE_LCD,
@@ -141,10 +154,10 @@ typedef enum {
 #define DEBE_PALETTE_EN 0x80
 
 typedef enum {
-    DEBE_MODE_1BPP_MONO      = 0 | DEBE_1BPP,
-    DEBE_MODE_2BPP_MONO      = 1 | DEBE_2BPP,
-    DEBE_MODE_4BPP_MONO      = 2 | DEBE_4BPP,
-    DEBE_MODE_8BPP_MONO      = 3 | DEBE_8BPP,
+    DEBE_MODE_1BPP_MONO       = 0 | DEBE_1BPP,
+    DEBE_MODE_2BPP_MONO       = 1 | DEBE_2BPP,
+    DEBE_MODE_4BPP_MONO       = 2 | DEBE_4BPP,
+    DEBE_MODE_8BPP_MONO       = 3 | DEBE_8BPP,
     DEBE_MODE_16BPP_RGB_655   = 4 | DEBE_16BPP,
     DEBE_MODE_16BPP_RGB_565   = 5 | DEBE_16BPP,
     DEBE_MODE_16BPP_RGB_556   = 6 | DEBE_16BPP,
@@ -153,29 +166,30 @@ typedef enum {
     DEBE_MODE_32BPP_RGB_888   = 9 | DEBE_32BPP,
     DEBE_MODE_32BPP_ARGB_8888 = 10 | DEBE_32BPP,
     DEBE_MODE_24BPP_RGB_888   = 11 | DEBE_24BPP,
-    DEBE_MODE_1BPP_PALETTE   = 0 | DEBE_PALETTE_EN | DEBE_1BPP,
-    DEBE_MODE_2BPP_PALETTE   = 1 | DEBE_PALETTE_EN | DEBE_2BPP,
-    DEBE_MODE_4BPP_PALETTE   = 2 | DEBE_PALETTE_EN | DEBE_4BPP,
-    DEBE_MODE_8BPP_PALETTE   = 3 | DEBE_PALETTE_EN | DEBE_8BPP,
+    DEBE_MODE_1BPP_PALETTE    = 0 | DEBE_PALETTE_EN | DEBE_1BPP,
+    DEBE_MODE_2BPP_PALETTE    = 1 | DEBE_PALETTE_EN | DEBE_2BPP,
+    DEBE_MODE_4BPP_PALETTE    = 2 | DEBE_PALETTE_EN | DEBE_4BPP,
+    DEBE_MODE_8BPP_PALETTE    = 3 | DEBE_PALETTE_EN | DEBE_8BPP,
     DEBE_MODE_DEFE_VIDEO      = 0x40,
     DEBE_MODE_YUV             = 0x41,
 } debe_color_mode_e;
 
 typedef struct {
-    int32_t width;
-    int32_t height;
-    int32_t bus_width;
-    int32_t bus_mode;
+    uint32_t width;
+    uint32_t height;
+    uint32_t bus_width;
+    uint32_t bus_mode;
+    uint32_t bus_8080_type;
 
-    int32_t pixel_clock_hz;
-    int32_t h_front_porch;
-    int32_t h_back_porch;
-    int32_t h_sync_len;
-    int32_t v_front_porch;
-    int32_t v_back_porch;
-    int32_t v_sync_len;
-    int32_t h_sync_invert;
-    int32_t v_sync_invert;
+    uint32_t pixel_clock_hz;
+    uint32_t h_front_porch;
+    uint32_t h_back_porch;
+    uint32_t h_sync_len;
+    uint32_t v_front_porch;
+    uint32_t v_back_porch;
+    uint32_t v_sync_len;
+    uint32_t h_sync_invert;
+    uint32_t v_sync_invert;
 } de_lcd_config_t;
 
 void debe_set_bg_color(uint32_t color);
@@ -203,6 +217,10 @@ void debe_load(debe_reg_update_e mode);
 void defe_init_spl_422(uint16_t in_w, uint16_t in_h, uint8_t* buf_y, uint8_t* buf_uv);
 
 void de_lcd_init(de_lcd_config_t* params);
+
+void de_lcd_8080_write(uint16_t data, bool is_cmd);
+
+void de_lcd_8080_auto_mode(bool enabled);
 
 void de_tv_init(tve_mode_e mode, uint16_t hor_lines);
 

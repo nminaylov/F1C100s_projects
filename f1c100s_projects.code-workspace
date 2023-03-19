@@ -30,6 +30,9 @@
 		{
 			"path": "projects/dram_init"
 		},
+		{
+			"path": "projects/q90_lcd"
+		},
 		// Add your project here
 	],
 	"settings": {
@@ -37,5 +40,15 @@
             "projects": true,
 		},
 		"cortex-debug.variableUseNaturalFormat": false,
+		"files.associations": {
+			"compare": "c",
+			"cstddef": "c",
+			"limits": "c",
+			"new": "c",
+			"f1c100s_de.h": "c",
+			"f1c100s_gpio.h": "c",
+			"type_traits": "c",
+			"xtr1common": "c"
+		},
     },
 }

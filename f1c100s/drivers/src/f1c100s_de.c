@@ -99,10 +99,11 @@ void debe_layer_set_mode(uint8_t layer, debe_color_mode_e mode) {
     } else {
         de.layer[layer].bits_per_pixel = (mode >> 8) & 0x00FF;
 
-        if(mode & DEBE_PALETTE_EN)
+        if(mode & DEBE_PALETTE_EN) {
             set32(DEBE_BASE + DEBE_LAY_ATTR0 + layer * 4, (1 << 22));
-        else
+        } else {
             clear32(DEBE_BASE + DEBE_LAY_ATTR0 + layer * 4, (1 << 22));
+        }
 
         uint32_t val = read32(DEBE_BASE + DEBE_LAY_ATTR1 + layer * 4) & ~(0x0F << 8);
         write32(DEBE_BASE + DEBE_LAY_ATTR1 + layer * 4, val | ((mode & 0x0F) << 8));
@@ -139,6 +140,33 @@ void debe_write_palette(uint32_t* data, uint16_t len) {
     memcpy((void*)(DEBE_BASE + DEBE_PALETTE), data, len * 4);
 }
 
+void de_lcd_8080_write(uint16_t data, bool is_cmd) {
+    while(read32(TCON_BASE + TCON0_CPU_INTF) & 0x00C00000)
+        ;
+
+    if(is_cmd) {
+        clear32(TCON_BASE + TCON0_CPU_INTF, (1 << 25));
+    } else {
+        set32(TCON_BASE + TCON0_CPU_INTF, (1 << 25));
+    }
+
+    while(read32(TCON_BASE + TCON0_CPU_INTF) & 0x00C00000)
+        ;
+
+    uint32_t reg_data = ((data & 0xfc00) << 8) | ((data & 0x0300) << 6) | ((data & 0x00e0) << 5) |
+                        ((data & 0x001f) << 3);
+
+    write32(TCON_BASE + TCON0_CPU_WR_DAT, reg_data);
+}
+
+void de_lcd_8080_auto_mode(bool enabled) {
+    if(enabled) {
+        set32(TCON_BASE + TCON0_CPU_INTF, (1 << 28));
+    } else {
+        clear32(TCON_BASE + TCON0_CPU_INTF, (1 << 28));
+    }
+}
+
 /************** Initialization ***************/
 void de_lcd_init(de_lcd_config_t* params) {
     de.height = params->height;
@@ -161,7 +189,9 @@ void de_lcd_init(de_lcd_config_t* params) {
     clk_reset_clear(CCU_BUS_SOFT_RST1, 12);
     clk_reset_clear(CCU_BUS_SOFT_RST1, 4);
 
-    for(uint32_t i = 0x0800; i < 0x1000; i += 4) write32(DEBE_BASE + i, 0);
+    for(uint32_t i = 0x0800; i < 0x1000; i += 4) {
+        write32(DEBE_BASE + i, 0);
+    }
 
     tcon_deinit();
     debe_init();
@@ -201,9 +231,9 @@ static const uint32_t csc_tab[192] = {
 // clang-format on
 
 void de_tv_init(tve_mode_e mode, uint16_t hor_lines) {
-    de.mode  = DE_TV;
-    de.width = 720;
-    (mode == TVE_MODE_NTSC) ? (de.height = 480) : (de.height = 576);
+    de.mode   = DE_TV;
+    de.width  = 720;
+    de.height = (mode == TVE_MODE_NTSC) ? (480) : (576);
 
     clk_reset_set(CCU_BUS_SOFT_RST1, 14);
     clk_reset_set(CCU_BUS_SOFT_RST1, 12);
@@ -221,34 +251,20 @@ void de_tv_init(tve_mode_e mode, uint16_t hor_lines) {
     clk_reset_clear(CCU_BUS_SOFT_RST1, 12);
     clk_reset_clear(CCU_BUS_SOFT_RST1, 4);
 
-    for(uint32_t i = 0x0800; i < 0x1000; i += 4) write32(DEBE_BASE + i, 0);
+    for(uint32_t i = 0x0800; i < 0x1000; i += 4) {
+        write32(DEBE_BASE + i, 0);
+    }
 
     tcon_deinit();
     debe_init();
     tcon1_init(mode);
 
     // CSC configuration
-
     for(uint8_t i = 0; i < 4; i++) {
         write32(DEBE_BASE + DEBE_COLOR_COEF + i * 4 + 0 * 4, csc_tab[12 * 3 + i] << 16);
         write32(DEBE_BASE + DEBE_COLOR_COEF + i * 4 + 4 * 4, csc_tab[12 * 3 + i + 4] << 16);
         write32(DEBE_BASE + DEBE_COLOR_COEF + i * 4 + 8 * 4, csc_tab[12 * 3 + i + 8] << 16);
     }
-
-    //    write32(DEBE_BASE + DEBE_COLOR_COEF + 0*4, 0x024C0000);
-    //    write32(DEBE_BASE + DEBE_COLOR_COEF + 1*4, 0x00AF0000);
-    //    write32(DEBE_BASE + DEBE_COLOR_COEF + 2*4, 0x003B0000);
-    //    write32(DEBE_BASE + DEBE_COLOR_COEF + 3*4, 0x00E00000);
-    //
-    //    write32(DEBE_BASE + DEBE_COLOR_COEF + 4*4, 0x1EDE0000);
-    //    write32(DEBE_BASE + DEBE_COLOR_COEF + 5*4, 0x1F990000);
-    //    write32(DEBE_BASE + DEBE_COLOR_COEF + 6*4, 0x01880000);
-    //    write32(DEBE_BASE + DEBE_COLOR_COEF + 7*4, 0x08000000);
-    //
-    //    write32(DEBE_BASE + DEBE_COLOR_COEF + 8*4, 0x1E930000);
-    //    write32(DEBE_BASE + DEBE_COLOR_COEF + 9*4, 0x01840000);
-    //    write32(DEBE_BASE + DEBE_COLOR_COEF + 10*4, 0x1FE90000);
-    //    write32(DEBE_BASE + DEBE_COLOR_COEF + 11*4, 0x08000000);
 
     set32(DEBE_BASE + DEBE_MODE, (1 << 5)); // CSC enable
 
@@ -348,6 +364,7 @@ static void tcon0_init(de_lcd_config_t* params) {
     bp    = params->h_sync_len + params->h_back_porch;
     total = de.width + params->h_front_porch + bp;
     write32(TCON_BASE + TCON0_TIMING_H, ((total - 1) << 16) | ((bp - 1) << 0));
+
     bp    = params->v_sync_len + params->v_back_porch;
     total = de.height + params->v_front_porch + bp;
     write32(TCON_BASE + TCON0_TIMING_V, ((total * 2) << 16) | ((bp - 1) << 0));
@@ -355,14 +372,21 @@ static void tcon0_init(de_lcd_config_t* params) {
         TCON_BASE + TCON0_TIMING_SYNC,
         ((params->h_sync_len - 1) << 16) | ((params->v_sync_len - 1) << 0));
 
-    if(params->bus_mode == DE_LCD_SERIAL_RGB) // TODO: RGB order
-        write32(TCON_BASE + TCON0_HV_INTF, (1UL << 31));
-    else if(params->bus_mode == DE_LCD_SERIAL_YUV) // TODO: YUV order
-        write32(TCON_BASE + TCON0_HV_INTF, (1UL << 31) | (1UL << 31));
-    else
+    if(params->bus_mode == DE_LCD_CPU_8080) {
+        set32(TCON_BASE + TCON0_CTRL, (1 << 24));
         write32(TCON_BASE + TCON0_HV_INTF, 0);
-
-    write32(TCON_BASE + TCON0_CPU_INTF, 0);
+        write32(TCON_BASE + TCON0_CPU_INTF, (params->bus_8080_type << 29) | (1 << 26));
+    } else {
+        clear32(TCON_BASE + TCON0_CTRL, (1 << 24));
+        if(params->bus_mode == DE_LCD_SERIAL_RGB) { // TODO: RGB order
+            write32(TCON_BASE + TCON0_HV_INTF, (1UL << 31));
+        } else if(params->bus_mode == DE_LCD_SERIAL_YUV) { // TODO: YUV order
+            write32(TCON_BASE + TCON0_HV_INTF, (1UL << 31) | (1UL << 31));
+        } else {
+            write32(TCON_BASE + TCON0_HV_INTF, 0);
+        }
+        write32(TCON_BASE + TCON0_CPU_INTF, 0);
+    }
 
     write32(TCON_BASE + TCON_FRM_SEED + 0 * 4, 0x11111111);
     write32(TCON_BASE + TCON_FRM_SEED + 1 * 4, 0x11111111);
@@ -444,6 +468,7 @@ static void tcon_clk_enable(void) {
 static void defe_clk_init(void) {
     clk_de_config(CCU_DEFE_CLK, CLK_DE_SRC_PLL_VIDEO, 1);
 }
+
 static void defe_clk_enable(void) {
     clk_enable(CCU_DRAM_CLK_GATE, 24);
     clk_enable(CCU_DEFE_CLK, 31);

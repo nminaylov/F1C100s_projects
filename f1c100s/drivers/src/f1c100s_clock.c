@@ -9,6 +9,7 @@ static void pll_video_init(pll_ch_e pll, uint8_t mul, uint8_t div);
 static uint32_t pll_video_get_freq(pll_ch_e pll);
 static void pll_periph_init(uint8_t mul, uint8_t div);
 static uint32_t pll_periph_get_freq(void);
+static uint32_t pll_ddr_get_freq(void);
 
 /************** PLLs ***************/
 // Enable PLL
@@ -63,7 +64,7 @@ uint32_t clk_pll_get_freq(pll_ch_e pll) {
     case PLL_VE:
         return pll_video_get_freq(pll);
     case PLL_DDR:
-        break; // TODO:
+        return pll_ddr_get_freq();
     case PLL_PERIPH:
         return pll_periph_get_freq();
     default:
@@ -196,6 +197,16 @@ static uint32_t pll_periph_get_freq(void) {
     uint32_t div = (reg >> 4) & 0x3;
 
     return (24000000 * (mul + 1) / (div + 1));
+}
+
+static uint32_t pll_ddr_get_freq(void) {
+    uint32_t reg = read32(CCU_BASE + CCU_PLL_DDR_CTRL);
+
+    uint32_t n = (reg >> 8) & 0x1F;
+    uint32_t k = (reg >> 4) & 0x3;
+    uint32_t m = (reg >> 0) & 0x3;
+
+    return (24000000 * (n + 1) * (k + 1) / (m + 1));
 }
 
 /************** Clock gating ***************/
