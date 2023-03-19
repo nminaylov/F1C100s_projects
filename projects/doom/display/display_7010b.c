@@ -14,6 +14,7 @@ void display_init(void) {
     config.width = 800;
     config.height = 480;
     config.bus_width = DE_LCD_R_5BITS | DE_LCD_G_6BITS | DE_LCD_B_5BITS;
+    config.bus_mode = DE_LCD_PARALLEL_RGB;
 
     config.pixel_clock_hz = 33000000;
     config.h_front_porch = 40;

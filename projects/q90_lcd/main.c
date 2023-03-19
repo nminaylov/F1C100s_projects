@@ -2,22 +2,11 @@
 #include <string.h>
 #include <math.h>
 #include "system.h"
-#include "f1c100s_de.h"
 #include "f1c100s_clock.h"
 #include "arm32.h"
 #include "display.h"
 #include "lcd.h"
 #include "q90_buttons.h"
-
-void delay(uint32_t t);
-void timer_init(void);
-void timer_irq_handler(void);
-
-#define LED_FADE_STEPS 1000
-#define LED_PWM_PERIOD 200
-
-volatile uint8_t tick_flag = 0;
-uint16_t sin_values[LED_FADE_STEPS / 2];
 
 int main(void) {
     system_init(); // Initialize clocks, mmu, cache, uart, ...
